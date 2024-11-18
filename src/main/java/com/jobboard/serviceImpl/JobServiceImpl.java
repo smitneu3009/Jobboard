@@ -38,4 +38,13 @@ public class JobServiceImpl implements JobService {
     public List<Job> findByCompany(Company company) {
         return jobDao.findByCompany(company);
     }
+    @Override
+    public int countActiveJobsByCompany(Company company) {
+        return jobDao.countActiveJobsByCompany(company);
+    }
+
+    @Override
+    public int countTotalApplicationsByCompany(Company company) {
+        return jobDao.countTotalApplicationsByCompany(company);
+    }
 }

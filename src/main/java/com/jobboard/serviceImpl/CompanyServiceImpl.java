@@ -39,6 +39,10 @@ public class CompanyServiceImpl implements CompanyService {
         }
         companyDao.updateProfile(company);
     }
+    @Override
+    public void updateCompany(Company company) {
+        companyDao.update(company);
+    }
     
     
 }

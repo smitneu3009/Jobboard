@@ -89,5 +89,24 @@ public class JobDaoImpl implements JobDao {
             session.close();
         }
     }
+    @Override
+    public int countActiveJobsByCompany(Company company) {
+        Session session = sessionFactory.openSession();
+        try {
+            String hql = "SELECT COUNT(j) FROM Job j WHERE j.company = :company";
+            return session.createQuery(hql, Long.class)
+                    .setParameter("company", company)
+                    .uniqueResult()
+                    .intValue();
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public int countTotalApplicationsByCompany(Company company) {
+        // Implement this when you add job applications functionality
+        return 0;
+    }
     
 }

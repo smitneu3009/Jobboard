@@ -7,4 +7,6 @@ public interface CompanyDao {
     Company findByEmail(String email);
     Company getProfile(int id);
     void updateProfile(Company company);
+    void update(Company company);
+    void save(Company company);
 }

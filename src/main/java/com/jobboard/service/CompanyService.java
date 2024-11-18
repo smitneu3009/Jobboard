@@ -7,5 +7,6 @@ public interface CompanyService {
     Company findByEmail(String email);
     Company getProfile(int id);
     void updateProfile(Company company);
+    void updateCompany(Company company);
     
 }

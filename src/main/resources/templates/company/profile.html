@@ -8,50 +8,51 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #0891b2;
-            --secondary-color: #0e7490;
-            --background-color: #f8fafc;
-            --sidebar-bg: #ffffff;
-            --card-bg: #ffffff;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --border-color: #e2e8f0;
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --background-color: #f0f9ff;
+            --text-color: #1f2937;
+            --error-color: #dc2626;
+            --success-color: #16a34a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            background-color: var(--background-color);
+            background: var(--background-color);
             min-height: 100vh;
-            font-family: 'Inter', sans-serif;
         }
 
-        /* Sidebar Styles - Same as dashboard */
         .sidebar {
-            background-color: var(--sidebar-bg);
+            background: white;
             height: 100vh;
             position: fixed;
             width: 250px;
             padding: 2rem 1rem;
-            box-shadow: 1px 0 10px rgba(0,0,0,0.05);
-            z-index: 1000;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
         .main-content {
             margin-left: 250px;
-            padding: 2rem 2.5rem;
+            padding: 2rem;
         }
 
         .profile-card {
-            background: var(--card-bg);
+            background: white;
             border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
 
         .profile-header {
             background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
             color: white;
             padding: 3rem 2rem;
-            border-radius: 1rem 1rem 0 0;
             position: relative;
         }
 
@@ -65,27 +66,54 @@
             justify-content: center;
             font-size: 3rem;
             color: var(--primary-color);
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
 
-        .profile-content {
-            padding: 2rem;
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            border: 1px solid #e5e7eb;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
         }
 
         .info-section {
-            margin-bottom: 2rem;
+            padding: 2rem;
+            border-top: 1px solid #e5e7eb;
         }
 
         .info-section h3 {
-            color: var(--text-primary);
+            color: var(--text-color);
+            margin-bottom: 1.5rem;
             font-size: 1.25rem;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--border-color);
+            font-weight: 600;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
         }
 
         .info-item {
-            margin-bottom: 1.5rem;
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 0.5rem;
         }
 
         .info-label {
@@ -96,7 +124,6 @@
 
         .info-value {
             color: var(--text-primary);
-            font-size: 1rem;
             font-weight: 500;
         }
 
@@ -104,44 +131,18 @@
             position: absolute;
             top: 1rem;
             right: 1rem;
-            background-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.2);
             color: white;
             border: none;
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1.5rem;
             border-radius: 0.5rem;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .edit-button:hover {
-            background-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 600;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
         }
 
         @media (max-width: 768px) {
@@ -154,17 +155,20 @@
                 margin-left: 0;
                 padding: 1rem;
             }
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar - Same as dashboard -->
+    <!-- Sidebar -->
     <div class="sidebar">
-        <div class="company-info text-center">
+        <div class="company-info text-center mb-4">
             <h4 th:text="${company.companyName}">Company Name</h4>
-            <p class="text-muted mb-0" th:text="${company.category}">Category</p>
+            <p class="text-muted" th:text="${company.category}">Category</p>
         </div>
-        <ul class="nav flex-column mt-4">
+        <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link" href="/company/dashboard">
                     <i class="fas fa-tachometer-alt me-2"></i> Dashboard
@@ -191,72 +195,63 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="profile-card">
+            <!-- Profile Header -->
             <div class="profile-header">
                 <div class="company-logo">
                     <i class="fas fa-building"></i>
                 </div>
                 <h2 th:text="${company.companyName}">Company Name</h2>
-                <p class="mb-0" th:text="${company.category}">Technology</p>
-                <button class="edit-button" onclick="location.href='/company/profile/edit'">
+                <p class="mb-0" th:text="${company.category}">Category</p>
+                <a href="/company/profile/edit" class="edit-button">
                     <i class="fas fa-edit me-2"></i>Edit Profile
-                </button>
+                </a>
             </div>
 
-            <div class="profile-content">
-                <!-- Statistics -->
-                <div class="stats-container">
-                    <div class="stat-card">
-                        <div class="stat-value" th:text="${activeJobs}">12</div>
-                        <div class="stat-label">Active Job Postings</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" th:text="${totalApplications}">48</div>
-                        <div class="stat-label">Total Applications</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" th:text="${viewsThisMonth}">156</div>
-                        <div class="stat-label">Profile Views This Month</div>
-                    </div>
+            <!-- Statistics -->
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${activeJobs}">0</div>
+                    <div class="stat-label">Active Job Postings</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${totalApplications}">0</div>
+                    <div class="stat-label">Total Applications</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" th:text="${viewsThisMonth}">0</div>
+                    <div class="stat-label">Profile Views This Month</div>
+                </div>
+            </div>
 
-                <!-- Company Information -->
-                <div class="info-section">
-                    <h3>Company Information</h3>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="info-item">
-                                <div class="info-label">Company Name</div>
-                                <div class="info-value" th:text="${company.companyName}">Company Name</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="info-item">
-                                <div class="info-label">Category</div>
-                                <div class="info-value" th:text="${company.category}">Technology</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="info-item">
-                                <div class="info-label">Location</div>
-                                <div class="info-value" th:text="${company.location}">New York, NY</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="info-item">
-                                <div class="info-label">Email</div>
-                                <div class="info-value" th:text="${company.email}">contact@company.com</div>
-                            </div>
-                        </div>
+            <!-- Company Information -->
+            <div class="info-section">
+                <h3>Company Information</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Company Name</div>
+                        <div class="info-value" th:text="${company.companyName}">Company Name</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Category</div>
+                        <div class="info-value" th:text="${company.category}">Category</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Location</div>
+                        <div class="info-value" th:text="${company.location}">Location</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Email</div>
+                        <div class="info-value" th:text="${company.email}">email@company.com</div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Company Description -->
-                <div class="info-section">
-                    <h3>About Company</h3>
-                    <p th:text="${company.description}" class="mb-0">
-                        Detailed company description goes here...
-                    </p>
-                </div>
+            <!-- Company Description -->
+            <div class="info-section">
+                <h3>About Company</h3>
+                <p th:text="${company.description}" class="mb-0">
+                    Company description goes here...
+                </p>
             </div>
         </div>
     </div>

@@ -136,4 +136,52 @@ public class CompanyController {
         return "redirect:/company/dashboard";
     }
     
+    @GetMapping("/company/profile")
+    public String showProfile(Model model, Principal principal) {
+        String email = principal.getName();
+        Company company = companyService.findByEmail(email);
+        
+        // Get statistics
+        int activeJobs = jobService.countActiveJobsByCompany(company);
+        int totalApplications = jobService.countTotalApplicationsByCompany(company);
+        int viewsThisMonth = 0; // Implement this feature later if needed
+        
+        model.addAttribute("company", company);
+        model.addAttribute("activeJobs", activeJobs);
+        model.addAttribute("totalApplications", totalApplications);
+        model.addAttribute("viewsThisMonth", viewsThisMonth);
+        
+        return "company/profile";
+    }
+
+    @GetMapping("/company/profile/edit")
+    public String showEditProfileForm(Model model, Principal principal) {
+        String email = principal.getName();
+        Company company = companyService.findByEmail(email);
+        model.addAttribute("company", company);
+        return "company/edit-profile";
+    }
+
+    @PostMapping("/company/profile/update")
+    public String updateProfile(
+            @ModelAttribute Company company,
+            Principal principal,
+            RedirectAttributes redirectAttributes) {
+        try {
+            String email = principal.getName();
+            Company existingCompany = companyService.findByEmail(email);
+            
+            // Update only allowed fields
+            existingCompany.setCompanyName(company.getCompanyName());
+            existingCompany.setCategory(company.getCategory());
+            existingCompany.setLocation(company.getLocation());
+            existingCompany.setDescription(company.getDescription());
+            
+            companyService.updateCompany(existingCompany);
+            redirectAttributes.addFlashAttribute("successMessage", "Profile updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error updating profile: " + e.getMessage());
+        }
+        return "redirect:/company/profile";
+    }
 }

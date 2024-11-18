@@ -10,5 +10,7 @@ public interface JobService {
     void deleteJob(int id);
     Job findById(int id);
     List<Job> findByCompany(Company company);
+    int countActiveJobsByCompany(Company company);
+    int countTotalApplicationsByCompany(Company company);
    
 }

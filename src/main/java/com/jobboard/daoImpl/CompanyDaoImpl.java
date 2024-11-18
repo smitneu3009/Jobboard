@@ -29,6 +29,23 @@ public class CompanyDaoImpl implements CompanyDao {
             session.close();
         }
     }
+    
+    @Override
+    public void save(Company company) {
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+            session.save(company);
+            tx.commit();
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            throw e;
+        } finally {
+            session.close();
+        }
+    }
+
 
     @Override
     public Company findByEmail(String email) {
@@ -55,6 +72,21 @@ public class CompanyDaoImpl implements CompanyDao {
 
     @Override
     public void updateProfile(Company company) {
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+            session.update(company);
+            tx.commit();
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            throw e;
+        } finally {
+            session.close();
+        }
+    }
+    @Override
+    public void update(Company company) {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {
