@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Job Posting</title>
+    <style>
+        :root {
+            --primary-color: #0891b2;
+            --secondary-color: #0e7490;
+            --background-color: #ecfeff;
+            --text-color: #1f2937;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--background-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        h2 {
+            color: var(--text-color);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+            position: relative;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(8, 145, 178, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .form-group.error input,
+        .form-group.error select,
+        .form-group.error textarea {
+            border-color: #dc2626;
+        }
+
+        .form-group.error .error-message {
+            display: block;
+        }
+
+        .back-link {
+            display: block;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/company/dashboard" class="back-link">← Back to Dashboard</a>
+        <h2>Create New Job Posting</h2>
+        <form id="createJobForm" th:action="@{/company/job/create}" method="post" novalidate>
+            <div class="form-group">
+                <label for="title">Job Title</label>
+                <input type="text" id="title" name="title" required>
+                <span class="error-message">Please enter a job title</span>
+            </div>
+
+            <div class="form-group">
+                <label for="payPerHour">Pay per Hour ($)</label>
+                <input type="number" id="payPerHour" name="payPerHour" step="0.01" min="0" required>
+                <span class="error-message">Please enter a valid pay rate</span>
+            </div>
+
+            <div class="form-group">
+                <label for="location">Location</label>
+                <input type="text" id="location" name="location" required>
+                <span class="error-message">Please enter a location</span>
+            </div>
+
+            <div class="form-group">
+                <label for="jobType">Job Type</label>
+                <select id="jobType" name="jobType" required>
+                    <option value="">Select Job Type</option>
+                    <option value="FULL_TIME">Full Time</option>
+                    <option value="PART_TIME">Part Time</option>
+                    <option value="INTERNSHIP">Internship</option>
+                    <option value="CONTRACT">Contract</option>
+                </select>
+                <span class="error-message">Please select a job type</span>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Job Description</label>
+                <textarea id="description" name="description" rows="6" required></textarea>
+                <span class="error-message">Please provide a job description (minimum 100 characters)</span>
+            </div>
+
+            <button type="submit">Create Job Posting</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('createJobForm');
+
+            function validateInput(input) {
+                const formGroup = input.closest('.form-group');
+                let isValid = true;
+
+                if (!input.value.trim()) {
+                    isValid = false;
+                } else if (input.id === 'description' && input.value.trim().length < 100) {
+                    isValid = false;
+                } else if (input.id === 'payPerHour' && (parseFloat(input.value) <= 0 || isNaN(input.value))) {
+                    isValid = false;
+                }
+
+                formGroup.classList.toggle('error', !isValid);
+                return isValid;
+            }
+
+            form.querySelectorAll('input, select, textarea').forEach(input => {
+                input.addEventListener('input', function() {
+                    validateInput(this);
+                });
+            });
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                let isValid = true;
+
+                this.querySelectorAll('input, select, textarea').forEach(input => {
+                    if (!validateInput(input)) {
+                        isValid = false;
+                    }
+                });
+
+                if (isValid) {
+                    this.submit();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

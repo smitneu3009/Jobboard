@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.security.Principal;
+
 @Controller
 public class JobSeekerController {
 
@@ -30,12 +32,12 @@ public class JobSeekerController {
             RedirectAttributes redirectAttributes) {
 
         if (result.hasErrors()) {
-            return "jobseeker/register"; // Show form with validation errors
+            return "jobseeker/register";
         }
 
-        jobSeekerService.registerJobSeeker(jobSeeker); // Save the job seeker to the database
+        jobSeekerService.registerJobSeeker(jobSeeker);
         redirectAttributes.addFlashAttribute("successMessage", "Registration successful! Please log in.");
-        return "redirect:/jobseekers/login"; // Redirect to login page after successful registration
+        return "redirect:/jobseekers/login";
     }
 
     @GetMapping("/jobseekers/login")
@@ -44,8 +46,10 @@ public class JobSeekerController {
     }
 
     @GetMapping("/jobseekers/dashboard")
-    public String showDashboard() {
-        // Logic to display job seeker dashboard
+    public String showDashboard(Model model, Principal principal) {
+        String email = principal.getName();
+        JobSeeker jobSeeker = jobSeekerService.findByEmail(email);
+        model.addAttribute("jobSeeker", jobSeeker);
         return "jobseeker/dashboard";
     }
 }

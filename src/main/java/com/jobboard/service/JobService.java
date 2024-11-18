@@ -1,0 +1,14 @@
+package com.jobboard.service;
+
+import com.jobboard.model.Job;
+import com.jobboard.model.Company;
+import java.util.List;
+
+public interface JobService {
+    void saveJob(Job job);
+    void updateJob(Job job);
+    void deleteJob(int id);
+    Job findById(int id);
+    List<Job> findByCompany(Company company);
+   
+}

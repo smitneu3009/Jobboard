@@ -6,6 +6,7 @@ import com.jobboard.service.JobSeekerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.util.List;
 
 @Service
 public class JobSeekerServiceImpl implements JobSeekerService {
@@ -28,13 +29,33 @@ public class JobSeekerServiceImpl implements JobSeekerService {
 
     @Override
     public void updateProfile(JobSeeker jobSeeker) {
+        // Only encode password if it's being updated
+        if (jobSeeker.getPassword() != null && !jobSeeker.getPassword().trim().isEmpty()) {
+            jobSeeker.setPassword(passwordEncoder.encode(jobSeeker.getPassword()));
+        }
         jobSeekerDao.updateProfile(jobSeeker);
     }
 
     @Override
     public void registerJobSeeker(JobSeeker jobSeeker) {
-        // Encrypt password before saving
         jobSeeker.setPassword(passwordEncoder.encode(jobSeeker.getPassword()));
         jobSeekerDao.registerJobSeeker(jobSeeker);
     }
+
+    @Override
+    public JobSeeker findByEmail(String email) {
+        return jobSeekerDao.findByEmail(email);
+    }
+
+    @Override
+    public List<JobSeeker> getAllJobSeekers() {
+        return jobSeekerDao.findAll();
+    }
+
+    @Override
+    public void deleteJobSeeker(int id) {
+        jobSeekerDao.deleteById(id);
+    }
+    
+    
 }
