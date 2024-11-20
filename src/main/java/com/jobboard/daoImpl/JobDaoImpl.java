@@ -2,6 +2,8 @@ package com.jobboard.daoImpl;
 
 import com.jobboard.dao.JobDao;
 import com.jobboard.model.Job;
+
+import org.hibernate.query.Query;
 import com.jobboard.model.Company;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -9,6 +11,8 @@ import org.hibernate.Transaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Repository
 public class JobDaoImpl implements JobDao {
@@ -107,6 +111,72 @@ public class JobDaoImpl implements JobDao {
     public int countTotalApplicationsByCompany(Company company) {
         // Implement this when you add job applications functionality
         return 0;
+    }
+    
+    @Override
+    public List<Job> findJobsWithFilters(String category, String location, Double minPay, Double maxPay, String jobType) {
+        Session session = sessionFactory.openSession();
+        try {
+            StringBuilder hql = new StringBuilder("FROM Job j WHERE 1=1");
+            Map<String, Object> params = new HashMap<>();  // Now HashMap is properly imported
+
+            if (category != null && !category.isEmpty()) {
+                hql.append(" AND j.company.category = :category");
+                params.put("category", category);
+            }
+
+            if (location != null && !location.isEmpty()) {
+                hql.append(" AND j.location = :location");
+                params.put("location", location);
+            }
+
+            if (minPay != null) {
+                hql.append(" AND j.payPerHour >= :minPay");
+                params.put("minPay", minPay);
+            }
+
+            if (maxPay != null) {
+                hql.append(" AND j.payPerHour <= :maxPay");
+                params.put("maxPay", maxPay);
+            }
+
+            if (jobType != null && !jobType.isEmpty()) {
+                hql.append(" AND j.jobType = :jobType");
+                params.put("jobType", jobType);
+            }
+
+            // Use org.hibernate.query.Query instead of jakarta.persistence.Query
+            Query<Job> query = session.createQuery(hql.toString(), Job.class);
+            params.forEach((key, value) -> query.setParameter(key, value));
+            return query.list();
+        } finally {
+            session.close();
+        }
+    }
+
+
+    @Override
+    public List<String> findAllCategories() {
+        Session session = sessionFactory.openSession();
+        try {
+            return session.createQuery(
+                "SELECT DISTINCT c.category FROM Company c", String.class)
+                .list();
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
+    public List<String> findAllLocations() {
+        Session session = sessionFactory.openSession();
+        try {
+            return session.createQuery(
+                "SELECT DISTINCT j.location FROM Job j", String.class)
+                .list();
+        } finally {
+            session.close();
+        }
     }
     
 }

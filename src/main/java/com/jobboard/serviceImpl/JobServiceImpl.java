@@ -47,4 +47,19 @@ public class JobServiceImpl implements JobService {
     public int countTotalApplicationsByCompany(Company company) {
         return jobDao.countTotalApplicationsByCompany(company);
     }
+    
+    @Override
+    public List<Job> findJobsWithFilters(String category, String location, Double minPay, Double maxPay, String jobType) {
+        return jobDao.findJobsWithFilters(category, location, minPay, maxPay, jobType);
+    }
+
+    @Override
+    public List<String> findAllCategories() {
+        return jobDao.findAllCategories();
+    }
+
+    @Override
+    public List<String> findAllLocations() {
+        return jobDao.findAllLocations();
+    }
 }

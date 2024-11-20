@@ -13,4 +13,8 @@ public interface JobDao {
     
     int countActiveJobsByCompany(Company company);
     int countTotalApplicationsByCompany(Company company);
+    
+    List<Job> findJobsWithFilters(String category, String location, Double minPay, Double maxPay, String jobType);
+    List<String> findAllCategories();
+    List<String> findAllLocations();
 }

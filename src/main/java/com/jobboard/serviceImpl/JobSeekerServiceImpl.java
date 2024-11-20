@@ -1,11 +1,15 @@
 package com.jobboard.serviceImpl;
 
+import com.jobboard.dao.JobApplicationDao;
 import com.jobboard.dao.JobSeekerDao;
+import com.jobboard.model.JobApplication;
 import com.jobboard.model.JobSeeker;
 import com.jobboard.service.JobSeekerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -13,6 +17,9 @@ public class JobSeekerServiceImpl implements JobSeekerService {
 
     @Autowired
     private JobSeekerDao jobSeekerDao;
+    
+    @Autowired
+    private JobApplicationDao jobApplicationDao; 
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -56,6 +63,28 @@ public class JobSeekerServiceImpl implements JobSeekerService {
     public void deleteJobSeeker(int id) {
         jobSeekerDao.deleteById(id);
     }
-    
+    @Override
+    public void saveApplication(JobApplication application) {
+        jobApplicationDao.save(application);
+    }
+    @Override
+    public List<JobApplication> getApplicationsByJobSeeker(JobSeeker jobSeeker) {
+        try {
+            List<JobApplication> applications = jobApplicationDao.findByJobSeeker(jobSeeker);
+            return applications != null ? applications : new ArrayList<>();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public JobApplication getApplicationById(int id) {
+        return jobApplicationDao.findById(id);
+    }
+    @Override
+    public boolean hasAlreadyApplied(int jobSeekerId, int jobId) {
+        return jobApplicationDao.existsByJobSeekerIdAndJobId(jobSeekerId, jobId);
+    }
     
 }

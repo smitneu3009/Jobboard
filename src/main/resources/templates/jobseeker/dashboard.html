@@ -2,11 +2,342 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Seeker Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --background-color: #f0f9ff;
+            --text-color: #1f2937;
+            --border-color: #e5e7eb;
+        }
+
+        body {
+            background-color: var(--background-color);
+            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .sidebar {
+            background: white;
+            height: 100vh;
+            position: fixed;
+            width: 250px;
+            padding: 2rem 1rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+        }
+
+        .search-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .filter-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1rem;
+        }
+
+        .job-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .job-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .job-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .company-logo {
+            width: 60px;
+            height: 60px;
+            background: var(--background-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .job-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .company-name {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .job-info {
+            padding: 1.5rem;
+        }
+
+        .info-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: var(--background-color);
+            border-radius: 2rem;
+            margin-right: 1rem;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+        }
+
+        .info-tag i {
+            margin-right: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .job-description {
+            color: #4b5563;
+            margin-top: 1rem;
+            line-height: 1.6;
+        }
+
+        .btn-apply {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-apply:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .range-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--border-color);
+            outline: none;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .range-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h2>Welcome to jobseeker Dashboard</h2>
-  
-    <!-- Add more dashboard content here -->
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="text-center mb-4">
+            <h4 th:text="${jobSeeker.firstName + ' ' + jobSeeker.lastName}">User Name</h4>
+            <p class="text-muted" th:text="${jobSeeker.email}">email@example.com</p>
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link active" href="/jobseekers/dashboard">
+                    <i class="fas fa-search me-2"></i> Find Jobs
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/jobseekers/applications">
+                    <i class="fas fa-file-alt me-2"></i> My Applications
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/jobseekers/profile">
+                    <i class="fas fa-user me-2"></i> Profile
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/jobseekers/login">
+                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+    <!-- Add this near the top of the content area -->
+<div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    <span th:text="${errorMessage}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+<div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <i class="fas fa-check-circle me-2"></i>
+    <span th:text="${successMessage}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Search Section -->
+        <div class="search-section">
+            <form id="searchForm" method="get" class="row g-3">
+                <div class="col-md-4">
+                    <select class="form-select" name="category">
+                        <option value="">All Categories</option>
+                        <option th:each="cat : ${categories}" 
+                                th:value="${cat}" 
+                                th:text="${cat}"
+                                th:selected="${cat == selectedCategory}">
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" name="location">
+                        <option value="">All Locations</option>
+                        <option th:each="loc : ${locations}" 
+                                th:value="${loc}" 
+                                th:text="${loc}"
+                                th:selected="${loc == selectedLocation}">
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" name="jobType">
+                        <option value="">All Job Types</option>
+                        <option th:each="type : ${jobTypes}" 
+                                th:value="${type}" 
+                                th:text="${type}"
+                                th:selected="${type == selectedJobType}">
+                        </option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <div class="filter-card">
+                        <label class="form-label">Salary Range (per hour)</label>
+                        <div class="d-flex align-items-center gap-3">
+                            <input type="range" class="range-slider" id="minPay" name="minPay"
+                                   min="0" max="100" step="5" th:value="${selectedMinPay}">
+                            <span id="minPayValue">$0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i>Search Jobs
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Job Listings -->
+        <div class="job-listings">
+            <div th:if="${jobs.empty}" class="alert alert-info">
+                No jobs found matching your criteria.
+            </div>
+
+            <div th:each="job : ${jobs}" class="job-card">
+                <div class="job-header d-flex justify-content-between align-items-start">
+                    <div class="d-flex gap-3">
+                        <div class="company-logo">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div>
+                            <h3 class="job-title" th:text="${job.title}">Job Title</h3>
+                            <p class="company-name" th:text="${job.company.companyName}">Company Name</p>
+                        </div>
+                    </div>
+                    <form th:action="@{/jobseekers/apply/{id}(id=${job.id})}" method="post">
+                        <button type="submit" class="btn-apply">Apply Now</button>
+                    </form>
+                </div>
+                <div class="job-info">
+                    <div class="info-tags">
+                        <span class="info-tag">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span th:text="${job.location}">Location</span>
+                        </span>
+                        <span class="info-tag">
+                            <i class="fas fa-clock"></i>
+                            <span th:text="${job.jobType}">Job Type</span>
+                        </span>
+                        <span class="info-tag">
+                            <i class="fas fa-dollar-sign"></i>
+                            <span th:text="${'$' + job.payPerHour + '/hour'}">Pay</span>
+                        </span>
+                    </div>
+                    <p class="job-description" th:text="${job.description}">
+                        Job description goes here...
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Salary range slider
+            const minPay = document.getElementById('minPay');
+            const minPayValue = document.getElementById('minPayValue');
+
+            function updateMinPayValue() {
+                minPayValue.textContent = `$${minPay.value}`;
+            }
+
+            minPay.addEventListener('input', updateMinPayValue);
+            updateMinPayValue();
+
+            // Form submission
+            const searchForm = document.getElementById('searchForm');
+            searchForm.addEventListener('submit', function(e) {
+                const formData = new FormData(this);
+                const params = new URLSearchParams();
+
+                for (let [key, value] of formData.entries()) {
+                    if (value) {
+                        params.append(key, value);
+                    }
+                }
+
+                window.location.href = `/jobseekers/dashboard?${params.toString()}`;
+                e.preventDefault();
+            });
+        });
+    </script>
 </body>
 </html>

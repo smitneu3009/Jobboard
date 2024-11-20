@@ -1,5 +1,6 @@
 package com.jobboard.service;
 
+import com.jobboard.model.JobApplication;
 import com.jobboard.model.JobSeeker;
 import java.util.List;
 
@@ -11,4 +12,10 @@ public interface JobSeekerService {
     JobSeeker findByEmail(String email);
     List<JobSeeker> getAllJobSeekers();
     void deleteJobSeeker(int id);
+    void saveApplication(JobApplication application); 
+    List<JobApplication> getApplicationsByJobSeeker(JobSeeker jobSeeker);
+    JobApplication getApplicationById(int id);
+    boolean hasAlreadyApplied(int jobSeekerId, int jobId);
+
+
 }
