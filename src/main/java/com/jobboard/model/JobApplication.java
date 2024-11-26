@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "JobApplication")
 public class JobApplication {
-    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -28,8 +27,8 @@ public class JobApplication {
     @Column(name = "application_date")
     private LocalDateTime applicationDate;
 
-    @Column(name = "status")
     @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private ApplicationStatus status;
 
 	public int getId() {
@@ -87,6 +86,4 @@ public class JobApplication {
 	public void setStatus(ApplicationStatus status) {
 		this.status = status;
 	}
-
-    // Add getters and setters
 }

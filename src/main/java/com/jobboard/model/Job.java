@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "Job")
@@ -92,6 +94,18 @@ public class Job {
     @ManyToOne
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
+    
+    @OneToMany(mappedBy = "job", fetch = FetchType.EAGER)
+    private List<JobApplication> applications = new ArrayList<>();
+
+    // Add getter and setter
+    public List<JobApplication> getApplications() {
+        return applications;
+    }
+
+    public void setApplications(List<JobApplication> applications) {
+        this.applications = applications;
+    }
 
     // Getters and Setters
 }

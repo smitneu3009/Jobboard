@@ -85,7 +85,7 @@ public class JobDaoImpl implements JobDao {
     public List<Job> findByCompany(Company company) {
         Session session = sessionFactory.openSession();
         try {
-            String hql = "FROM Job WHERE company = :company";
+            String hql = "FROM Job j LEFT JOIN FETCH j.applications WHERE j.company = :company";
             return session.createQuery(hql, Job.class)
                     .setParameter("company", company)
                     .list();

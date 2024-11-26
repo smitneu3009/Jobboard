@@ -4,6 +4,7 @@ import com.jobboard.model.ApplicationStatus;
 import com.jobboard.model.Job;
 import com.jobboard.model.JobApplication;
 import com.jobboard.model.JobSeeker;
+import com.jobboard.service.EmailService;
 import com.jobboard.service.JobSeekerService;
 import com.jobboard.service.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -43,6 +45,9 @@ public class JobSeekerController {
     
     @Autowired
     private JobService jobService; // Add this
+    
+    @Autowired
+    private EmailService emailService;
 
     @GetMapping("/jobseekers/register")
     public String showRegistrationForm(Model model) {
@@ -134,6 +139,8 @@ public class JobSeekerController {
         }
     }
 
+    
+
     @PostMapping("/jobseekers/apply/{jobId}")
     public String submitApplication(
             @PathVariable int jobId,
@@ -158,6 +165,7 @@ public class JobSeekerController {
 
             String email = principal.getName();
             JobSeeker jobSeeker = jobSeekerService.findByEmail(email);
+            Job job = jobService.findById(jobId);
             
             // Save resume file
             String fileName = UUID.randomUUID().toString() + "_" + originalFilename;
@@ -173,7 +181,7 @@ public class JobSeekerController {
             
             // Create application
             JobApplication application = new JobApplication();
-            application.setJob(jobService.findById(jobId));
+            application.setJob(job);
             application.setJobSeeker(jobSeeker);
             application.setCoverLetter(coverLetter);
             application.setResumePath(uploadDir + fileName);
@@ -182,11 +190,39 @@ public class JobSeekerController {
             
             jobSeekerService.saveApplication(application);
             
+            // Send confirmation email
+            sendApplicationConfirmationEmail(jobSeeker, job);
+            
             redirectAttributes.addFlashAttribute("successMessage", "Application submitted successfully!");
             return "redirect:/jobseekers/dashboard";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error submitting application: " + e.getMessage());
             return "redirect:/jobseekers/apply/" + jobId;
+        }
+    }
+
+    private void sendApplicationConfirmationEmail(JobSeeker jobSeeker, Job job) {
+        try {
+            String subject = "Application Received - " + job.getTitle();
+            StringBuilder body = new StringBuilder();
+            body.append("Dear ").append(jobSeeker.getFirstName()).append(",\n\n");
+            body.append("Thank you for submitting your application for the position of ")
+                .append(job.getTitle())
+                .append(" at ")
+                .append(job.getCompany().getCompanyName())
+                .append(".\n\n");
+            body.append("If there is a good match between your qualifications and our requirements, we will contact you soon for the next steps.\n\n");
+            body.append("Best regards,\n");
+            body.append("Job Board Team");
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(jobSeeker.getEmail());
+            message.setSubject(subject);
+            message.setText(body.toString());
+            emailService.send(message);
+        } catch (Exception e) {
+            // Log error but don't stop the application flow
+            e.printStackTrace();
         }
     }
     
@@ -202,7 +238,7 @@ public class JobSeekerController {
                 jobApplications = new ArrayList<>();
             }
             
-            model.addAttribute("jobApplications", jobApplications); // Changed from "applications" to "jobApplications"
+            model.addAttribute("jobApplications", jobApplications);
             model.addAttribute("jobSeeker", jobSeeker);
             return "jobseeker/applications";
         } catch (Exception e) {
@@ -233,6 +269,54 @@ public class JobSeekerController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+    
+    @GetMapping("/jobseekers/profile")
+    public String showProfile(Model model, Principal principal) {
+        String email = principal.getName();
+        JobSeeker jobSeeker = jobSeekerService.findByEmail(email);
+        
+        // Get statistics
+        int totalApplications = jobSeekerService.countTotalApplications(jobSeeker);
+        int pendingApplications = jobSeekerService.countApplicationsByStatus(jobSeeker, ApplicationStatus.PENDING);
+        int acceptedApplications = jobSeekerService.countApplicationsByStatus(jobSeeker, ApplicationStatus.ACCEPTED);
+        
+        model.addAttribute("jobSeeker", jobSeeker);
+        model.addAttribute("totalApplications", totalApplications);
+        model.addAttribute("pendingApplications", pendingApplications);
+        model.addAttribute("acceptedApplications", acceptedApplications);
+        
+        return "jobseeker/profile";
+    }
+
+    @GetMapping("/jobseekers/profile/edit")
+    public String showEditProfileForm(Model model, Principal principal) {
+        String email = principal.getName();
+        JobSeeker jobSeeker = jobSeekerService.findByEmail(email);
+        model.addAttribute("jobSeeker", jobSeeker);
+        return "jobseeker/edit-profile";
+    }
+
+    @PostMapping("/jobseekers/profile/update")
+    public String updateProfile(
+            @ModelAttribute JobSeeker jobSeeker,
+            Principal principal,
+            RedirectAttributes redirectAttributes) {
+        try {
+            String email = principal.getName();
+            JobSeeker existingJobSeeker = jobSeekerService.findByEmail(email);
+            
+            // Update only allowed fields
+            existingJobSeeker.setFirstName(jobSeeker.getFirstName());
+            existingJobSeeker.setLastName(jobSeeker.getLastName());
+            // Don't update email as it's used for authentication
+            
+            jobSeekerService.updateProfile(existingJobSeeker);
+            redirectAttributes.addFlashAttribute("successMessage", "Profile updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error updating profile: " + e.getMessage());
+        }
+        return "redirect:/jobseekers/profile";
     }
 
 }

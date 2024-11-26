@@ -1,5 +1,6 @@
 package com.jobboard.service;
 
+import com.jobboard.model.ApplicationStatus;
 import com.jobboard.model.JobApplication;
 import com.jobboard.model.JobSeeker;
 import java.util.List;
@@ -16,6 +17,6 @@ public interface JobSeekerService {
     List<JobApplication> getApplicationsByJobSeeker(JobSeeker jobSeeker);
     JobApplication getApplicationById(int id);
     boolean hasAlreadyApplied(int jobSeekerId, int jobId);
-
-
+    int countTotalApplications(JobSeeker jobSeeker);
+    int countApplicationsByStatus(JobSeeker jobSeeker, ApplicationStatus status);
 }

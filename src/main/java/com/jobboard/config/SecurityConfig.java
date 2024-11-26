@@ -26,39 +26,6 @@ public class SecurityConfig {
     }
     
     @Bean
-    @Order(1)
-    public SecurityFilterChain adminSecurityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .securityMatcher("/admin/**")
-            .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/admin/login").permitAll()
-                .anyRequest().hasRole("ADMIN")
-            )
-            .formLogin(form -> form
-                .loginPage("/admin/login")
-                .loginProcessingUrl("/admin/login")
-                .defaultSuccessUrl("/admin/dashboard", true)
-                .failureUrl("/admin/login?error=true")
-                .permitAll()
-            )
-            .exceptionHandling(exception -> exception
-                .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    if (request.isUserInRole("ADMIN")) {
-                        response.sendRedirect("/admin/dashboard");
-                    } else {
-                        response.sendRedirect("/admin/login");
-                    }
-                })
-                .authenticationEntryPoint((request, response, authException) -> {
-                    response.sendRedirect("/admin/login");
-                })
-            )
-            .csrf().disable();
-
-        return http.build();
-    }
-
-    @Bean
     @Order(2)
     public SecurityFilterChain jobseekerSecurityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -69,9 +36,16 @@ public class SecurityConfig {
             )
             .formLogin(form -> form
                 .loginPage("/jobseekers/login")
+                .loginProcessingUrl("/jobseekers/login")
                 .defaultSuccessUrl("/jobseekers/dashboard", true)
                 .failureUrl("/jobseekers/login?error=true")
                 .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutUrl("/jobseekers/logout")
+                .logoutSuccessUrl("/")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
             )
             .exceptionHandling(exception -> exception
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
@@ -91,6 +65,47 @@ public class SecurityConfig {
     }
     
     @Bean
+    @Order(1)
+    public SecurityFilterChain adminSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher("/admin/**")
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/admin/login").permitAll()
+                .anyRequest().hasRole("ADMIN")
+            )
+            .formLogin(form -> form
+                .loginPage("/admin/login")
+                .loginProcessingUrl("/admin/login")
+                .defaultSuccessUrl("/admin/dashboard", true)
+                .failureUrl("/admin/login?error=true")
+                .permitAll()
+            )
+            .logout(logout -> logout
+                    .logoutUrl("/admin/logout")
+                    .logoutSuccessUrl("/admin/login")
+                    .invalidateHttpSession(true)
+                    .deleteCookies("JSESSIONID")
+                )
+            .exceptionHandling(exception -> exception
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    if (request.isUserInRole("ADMIN")) {
+                        response.sendRedirect("/admin/dashboard");
+                    } else {
+                        response.sendRedirect("/admin/login");
+                    }
+                })
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.sendRedirect("/admin/login");
+                })
+            )
+            .csrf().disable();
+
+        return http.build();
+    }
+
+   
+    
+    @Bean
     @Order(3)
     public SecurityFilterChain companySecurityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -101,9 +116,16 @@ public class SecurityConfig {
             )
             .formLogin(form -> form
                 .loginPage("/company/login")
+                .loginProcessingUrl("/company/login")
                 .defaultSuccessUrl("/company/dashboard", true)
                 .failureUrl("/company/login?error=true")
                 .permitAll()
+            )
+            .logout(logout -> logout
+                .logoutUrl("/company/logout")
+                .logoutSuccessUrl("/")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
             )
             .exceptionHandling(exception -> exception
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
@@ -121,10 +143,24 @@ public class SecurityConfig {
 
         return http.build();
     }
+    @Bean
+    @Order(4)
+    public SecurityFilterChain publicSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher("/", "/homepage")
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/", "/homepage").permitAll()
+            )
+            .csrf().disable();
+
+        return http.build();
+    }
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().requestMatchers("/error");
+        return (web) -> web.ignoring()
+                .requestMatchers("/error")
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico");
     }
 
     @Bean

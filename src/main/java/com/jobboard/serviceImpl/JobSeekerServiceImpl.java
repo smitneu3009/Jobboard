@@ -2,6 +2,7 @@ package com.jobboard.serviceImpl;
 
 import com.jobboard.dao.JobApplicationDao;
 import com.jobboard.dao.JobSeekerDao;
+import com.jobboard.model.ApplicationStatus;
 import com.jobboard.model.JobApplication;
 import com.jobboard.model.JobSeeker;
 import com.jobboard.service.JobSeekerService;
@@ -85,6 +86,17 @@ public class JobSeekerServiceImpl implements JobSeekerService {
     @Override
     public boolean hasAlreadyApplied(int jobSeekerId, int jobId) {
         return jobApplicationDao.existsByJobSeekerIdAndJobId(jobSeekerId, jobId);
+    }
+    @Override
+    public int countTotalApplications(JobSeeker jobSeeker) {
+        List<JobApplication> applications = jobApplicationDao.findByJobSeeker(jobSeeker);
+        return applications != null ? applications.size() : 0;
+    }
+
+    @Override
+    public int countApplicationsByStatus(JobSeeker jobSeeker, ApplicationStatus status) {
+        List<JobApplication> applications = jobApplicationDao.findByJobSeekerAndStatus(jobSeeker, status);
+        return applications != null ? applications.size() : 0;
     }
     
 }

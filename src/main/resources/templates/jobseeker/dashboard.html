@@ -192,11 +192,13 @@
                     <i class="fas fa-user me-2"></i> Profile
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/jobseekers/login">
-                    <i class="fas fa-sign-out-alt me-2"></i> Logout
-                </a>
-            </li>
+           <li class="nav-item">
+    <form th:action="@{/jobseekers/logout}" method="post" style="display: inline;">
+        <button type="submit" class="nav-link" style="background: none; border: none; width: 100%; text-align: left;">
+            <i class="fas fa-sign-out-alt me-2"></i> Logout
+        </button>
+    </form>
+</li>
         </ul>
     </div>
     <!-- Add this near the top of the content area -->
@@ -282,9 +284,9 @@
                             <p class="company-name" th:text="${job.company.companyName}">Company Name</p>
                         </div>
                     </div>
-                    <form th:action="@{/jobseekers/apply/{id}(id=${job.id})}" method="post">
-                        <button type="submit" class="btn-apply">Apply Now</button>
-                    </form>
+                   <a th:href="@{/jobseekers/apply/{id}(id=${job.id})}" class="btn-apply">
+    Apply Now
+</a>
                 </div>
                 <div class="job-info">
                     <div class="info-tags">

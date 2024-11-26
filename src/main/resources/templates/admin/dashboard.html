@@ -59,12 +59,13 @@
                                 Jobs
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/admin/login">
-                                <i class="fas fa-sign-out-alt me-2"></i>
-                                Logout
-                            </a>
-                        </li>
+                       <li class="nav-item">
+    <form th:action="@{/admin/logout}" method="post" style="display: inline;">
+        <button type="submit" class="nav-link" style="background: none; border: none; width: 100%; text-align: left;">
+            <i class="fas fa-sign-out-alt me-2"></i> Logout
+        </button>
+    </form>
+</li>
                     </ul>
                 </div>
             </nav>
