@@ -46,7 +46,12 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public Job findById(int id) {
-        return jobDao.findById(id);
+        Job job = jobDao.findById(id);
+        if (job != null) {
+            // Force initialization of company
+            job.getCompany().getCompanyName(); // This will trigger lazy loading
+        }
+        return job;
     }
 
     @Override

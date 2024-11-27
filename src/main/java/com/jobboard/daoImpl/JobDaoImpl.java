@@ -75,12 +75,15 @@ public class JobDaoImpl implements JobDao {
     public Job findById(int id) {
         Session session = sessionFactory.openSession();
         try {
-            return session.get(Job.class, id);
+            // Use join fetch to eagerly load the company
+            String hql = "FROM Job j LEFT JOIN FETCH j.company WHERE j.id = :id";
+            return session.createQuery(hql, Job.class)
+                    .setParameter("id", id)
+                    .uniqueResult();
         } finally {
             session.close();
         }
     }
-
     @Override
     public List<Job> findByCompany(Company company) {
         Session session = sessionFactory.openSession();

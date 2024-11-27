@@ -101,17 +101,22 @@ public class CompanyController {
 
     @GetMapping("/company/job/edit/{id}")
     public String showEditJobForm(@PathVariable("id") int id, Model model, Principal principal) {
-        String email = principal.getName();
-        Company company = companyService.findByEmail(email);
-        Job job = jobService.findById(id);
-        
-        // Verify that the job belongs to the company using == for primitive int
-        if (job == null || job.getCompany().getId() != company.getId()) {
+        try {
+            String email = principal.getName();
+            Company company = companyService.findByEmail(email);
+            Job job = jobService.findById(id);
+            
+            // Verify that the job belongs to the company
+            if (job == null || job.getCompany().getId() != company.getId()) {
+                return "redirect:/company/dashboard";
+            }
+            
+            model.addAttribute("company", company);  // Add this line
+            model.addAttribute("job", job);
+            return "company/edit-job";
+        } catch (Exception e) {
             return "redirect:/company/dashboard";
         }
-        
-        model.addAttribute("job", job);
-        return "company/edit-job";
     }
 
     @PostMapping("/company/job/update")

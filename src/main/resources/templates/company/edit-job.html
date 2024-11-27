@@ -30,15 +30,40 @@
             padding: 2rem;
         }
 
-        .sidebar {
-            background: white;
+         .sidebar {
+            background-color: var(--sidebar-bg);
+            height: 100vh;
+            position: fixed;
             width: 250px;
             padding: 2rem 1rem;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            position: fixed;
-            height: 100vh;
-            top: 0;
-            left: 0;
+            box-shadow: 1px 0 10px rgba(0,0,0,0.05);
+            z-index: 1000;
+        }
+
+        .company-info {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .company-info h4 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            padding: 0.8rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
         }
 
         .main-content {
@@ -196,13 +221,13 @@
 <body>
     <!-- Sidebar -->
     <div class="sidebar">
-        <div class="company-info text-center mb-4">
+        <div class="company-info text-center">
             <h4 th:text="${company.companyName}">Company Name</h4>
-            <p class="text-muted" th:text="${company.category}">Category</p>
+            <p class="text-muted mb-0" th:text="${company.category}">Category</p>
         </div>
-        <ul class="nav flex-column">
+        <ul class="nav flex-column mt-4">
             <li class="nav-item">
-                <a class="nav-link" href="/company/dashboard">
+                <a class="nav-link active" href="/company/dashboard">
                     <i class="fas fa-tachometer-alt me-2"></i> Dashboard
                 </a>
             </li>
@@ -212,15 +237,17 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link active" href="/company/profile">
+                <a class="nav-link" href="/company/profile">
                     <i class="fas fa-user me-2"></i> Profile
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/logout">
-                    <i class="fas fa-sign-out-alt me-2"></i> Logout
-                </a>
-            </li>
+    <form th:action="@{/company/logout}" method="post" style="display: inline;">
+        <button type="submit" class="nav-link" style="background: none; border: none; width: 100%; text-align: left;">
+            <i class="fas fa-sign-out-alt me-2"></i> Logout
+        </button>
+    </form>
+</li>
         </ul>
     </div>
 
@@ -231,11 +258,10 @@
             <form id="editProfileForm" th:action="@{/company/profile/update}" method="post" th:object="${company}">
                 <input type="hidden" th:field="*{id}">
                 
-                <div class="form-group">
-                    <label for="companyName">Company Name</label>
-                    <input type="text" id="companyName" th:field="*{companyName}" required>
-                    <span class="error-message">Please enter company name</span>
-                </div>
+                <div class="company-info text-center mb-4">
+    <h4 th:if="${company != null}" th:text="${company.companyName}">Company Name</h4>
+    <p class="text-muted" th:if="${company != null}" th:text="${company.category}">Category</p>
+</div>
 
                 <div class="form-group">
                     <label for="category">Category</label>
@@ -266,7 +292,7 @@
                 </div>
 
                 <div class="btn-container">
-                    <a href="/company/profile" class="btn btn-secondary">
+                    <a href="/company/dashboard" class="btn btn-secondary">
                         <i class="fas fa-times me-2"></i>Cancel
                     </a>
                     <button type="submit" class="btn btn-primary">
