@@ -21,13 +21,41 @@
             font-family: 'Segoe UI', sans-serif;
         }
 
+        /* Sidebar Styles */
         .sidebar {
-            background: white;
+            background-color: var(--sidebar-bg);
             height: 100vh;
             position: fixed;
             width: 250px;
             padding: 2rem 1rem;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 1px 0 10px rgba(0,0,0,0.05);
+            z-index: 1000;
+        }
+
+        .company-info {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .company-info h4 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            padding: 0.8rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
         }
 
         .main-content {
@@ -69,14 +97,20 @@
 </head>
 <body>
     <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="text-center mb-4">
-            <h4 th:text="${company != null ? company.companyName : 'Company Name'}">Company Name</h4>
+     <div class="sidebar">
+        <div class="company-info text-center">
+            <h4 th:text="${company.companyName}">Company Name</h4>
+            <p class="text-muted mb-0" th:text="${company.category}">Category</p>
         </div>
-        <ul class="nav flex-column">
+        <ul class="nav flex-column mt-4">
             <li class="nav-item">
-                <a class="nav-link" href="/company/dashboard">
+                <a class="nav-link active" href="/company/dashboard">
                     <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/company/job/create">
+                    <i class="fas fa-plus-circle me-2"></i> Create Job
                 </a>
             </li>
             <li class="nav-item">
@@ -85,10 +119,12 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="/logout">
-                    <i class="fas fa-sign-out-alt me-2"></i> Logout
-                </a>
-            </li>
+    <form th:action="@{/company/logout}" method="post" style="display: inline;">
+        <button type="submit" class="nav-link" style="background: none; border: none; width: 100%; text-align: left;">
+            <i class="fas fa-sign-out-alt me-2"></i> Logout
+        </button>
+    </form>
+</li>
         </ul>
     </div>
 

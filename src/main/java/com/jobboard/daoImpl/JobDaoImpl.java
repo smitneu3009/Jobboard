@@ -178,5 +178,14 @@ public class JobDaoImpl implements JobDao {
             session.close();
         }
     }
+    @Override
+    public List<Job> findAll() {
+        Session session = sessionFactory.openSession();
+        try {
+            return session.createQuery("FROM Job", Job.class).list();
+        } finally {
+            session.close();
+        }
+    }
     
 }

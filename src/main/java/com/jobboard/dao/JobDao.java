@@ -17,4 +17,6 @@ public interface JobDao {
     List<Job> findJobsWithFilters(String category, String location, Double minPay, Double maxPay, String jobType);
     List<String> findAllCategories();
     List<String> findAllLocations();
+    List<Job> findAll();
+
 }

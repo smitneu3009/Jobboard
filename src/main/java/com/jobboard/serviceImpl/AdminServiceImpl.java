@@ -4,7 +4,6 @@ import com.jobboard.dao.AdminDao;
 import com.jobboard.model.Admin;
 import com.jobboard.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service

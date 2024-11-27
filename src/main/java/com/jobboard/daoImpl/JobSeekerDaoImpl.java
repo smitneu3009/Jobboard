@@ -45,7 +45,7 @@ public class JobSeekerDaoImpl implements JobSeekerDao {
         Session session = sessionFactory.openSession();
         Transaction tx = session.beginTransaction();
         try {
-            session.update(jobSeeker);
+            session.merge(jobSeeker); // Use merge instead of update
             tx.commit();
         } catch (Exception e) {
             if (tx != null) tx.rollback();

@@ -1,5 +1,6 @@
 package com.jobboard.serviceImpl;
 
+import com.jobboard.dao.JobApplicationDao;
 import com.jobboard.dao.JobDao;
 import com.jobboard.model.Job;
 import com.jobboard.model.Company;
@@ -13,6 +14,9 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private JobDao jobDao;
+    
+    @Autowired
+    private JobApplicationDao jobApplicationDao;
 
     @Override
     public void saveJob(Job job) {
@@ -26,7 +30,18 @@ public class JobServiceImpl implements JobService {
 
     @Override
     public void deleteJob(int id) {
-        jobDao.delete(id);
+        try {
+            // First delete all applications for this job
+            Job job = jobDao.findById(id);
+            if (job != null) {
+                // Delete all applications first
+            	jobApplicationDao.deleteByJobId(id);
+                // Then delete the job
+                jobDao.delete(id);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error deleting job: " + e.getMessage());
+        }
     }
 
     @Override
@@ -61,5 +76,9 @@ public class JobServiceImpl implements JobService {
     @Override
     public List<String> findAllLocations() {
         return jobDao.findAllLocations();
+    }
+    @Override
+    public List<Job> getAllJobs() {
+        return jobDao.findAll();
     }
 }

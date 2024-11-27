@@ -14,4 +14,5 @@ public interface JobApplicationDao {
     boolean existsByJobSeekerIdAndJobId(int jobSeekerId, int jobId);
     List<JobApplication> findByJobSeeker(JobSeeker jobSeeker);
     List<JobApplication> findByJobSeekerAndStatus(JobSeeker jobSeeker, ApplicationStatus status);
+    void deleteByJobId(int jobId);
 }

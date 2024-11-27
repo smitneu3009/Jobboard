@@ -133,4 +133,22 @@ public class JobApplicationDaoImpl implements JobApplicationDao {
             session.close();
         }
     }
+    @Override
+    public void deleteByJobId(int jobId) {
+        Session session = sessionFactory.openSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+            String hql = "DELETE FROM JobApplication WHERE job.id = :jobId";
+            session.createQuery(hql)
+                .setParameter("jobId", jobId)
+                .executeUpdate();
+            tx.commit();
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            throw e;
+        } finally {
+            session.close();
+        }
+    }
 }
