@@ -1,7 +1,9 @@
 package com.jobboard.controller;
 
+import com.jobboard.model.Company;
 import com.jobboard.model.Job;
 import com.jobboard.model.JobSeeker;
+import com.jobboard.service.CompanyService;
 import com.jobboard.service.JobSeekerService;
 import com.jobboard.service.JobService;
 
@@ -15,6 +17,11 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @Controller
 public class AdminController {
@@ -23,6 +30,9 @@ public class AdminController {
 	
 	@Autowired
     private JobService jobService;
+	
+	@Autowired
+	private CompanyService companyService;
 
     @GetMapping("/admin/login")
     public String showAdminLoginForm() {
@@ -30,11 +40,23 @@ public class AdminController {
     }
 
     @GetMapping("/admin/dashboard")
-    public String showAdminDashboard(Model model) {
-        List<JobSeeker> jobSeekers = jobSeekerService.getAllJobSeekers();
-        model.addAttribute("jobSeekers", jobSeekers);
+    public String showAdminDashboard(
+            Model model,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        
+        Pageable pageable = PageRequest.of(page, size);
+        Page<JobSeeker> jobSeekerPage = jobSeekerService.getAllJobSeekersPageable(pageable);
+        
+        model.addAttribute("jobSeekers", jobSeekerPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", jobSeekerPage.getTotalPages());
+        model.addAttribute("totalItems", jobSeekerPage.getTotalElements());
+        
         return "admin/dashboard";
     }
+
+
 
     @GetMapping("/admin/jobseeker/edit/{id}")
     public String showEditJobSeekerForm(@PathVariable("id") int id, Model model) {
@@ -85,11 +107,21 @@ public class AdminController {
         return "redirect:/admin/dashboard";
     }
     @GetMapping("/admin/jobs")
-    public String showJobs(Model model) {
-        List<Job> jobs = jobService.getAllJobs();
-        model.addAttribute("jobs", jobs);
+    public String showJobs(Model model, 
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Job> jobPage = jobService.findAllJobs(pageable);
+        
+        model.addAttribute("jobs", jobPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", jobPage.getTotalPages());
+        model.addAttribute("totalItems", jobPage.getTotalElements());
+        
         return "admin/jobs";
     }
+
 
     @GetMapping("/admin/job/edit/{id}")
     public String showEditJobForm(@PathVariable("id") int id, Model model, RedirectAttributes redirectAttributes) {
@@ -138,4 +170,39 @@ public class AdminController {
         }
         return "redirect:/admin/jobs";
     }
+    
+    @GetMapping("/admin/companies")
+    public String showCompanies(
+            Model model,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Company> companyPage = companyService.getAllCompaniesPageable(pageable);
+        
+        model.addAttribute("companies", companyPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", companyPage.getTotalPages());
+        model.addAttribute("totalItems", companyPage.getTotalElements());
+        
+        return "admin/companies";
+    }
+    @GetMapping("/admin/company/delete/{id}")
+    public String deleteCompany(@PathVariable("id") int id, RedirectAttributes redirectAttributes) {
+        try {
+            // First delete all jobs associated with this company
+            List<Job> companyJobs = jobService.findByCompanyId(id);
+            for (Job job : companyJobs) {
+                jobService.deleteJob(job.getId());
+            }
+            
+            // Then delete the company
+            companyService.deleteCompany(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Company deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error deleting company: " + e.getMessage());
+        }
+        return "redirect:/admin/companies";
+    }
+
 }

@@ -13,6 +13,10 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageImpl;
+
 
 @Repository
 public class JobDaoImpl implements JobDao {
@@ -190,5 +194,39 @@ public class JobDaoImpl implements JobDao {
             session.close();
         }
     }
+    @Override
+    public Page<Job> findAllPaginated(Pageable pageable) {
+        Session session = sessionFactory.openSession();
+        try {
+            // Get total count
+            Long total = session.createQuery("SELECT COUNT(j) FROM Job j", Long.class)
+                .getSingleResult();
+
+            // Get paginated results
+            List<Job> jobs = session.createQuery("FROM Job j JOIN FETCH j.company", Job.class)
+                .setFirstResult((int) pageable.getOffset())
+                .setMaxResults(pageable.getPageSize())
+                .getResultList();
+
+            return new PageImpl<>(jobs, pageable, total);
+        } finally {
+            session.close();
+        }
+    }
+    @Override
+    public List<Job> findByCompanyId(int companyId) {
+        Session session = sessionFactory.openSession();
+        try {
+            return session.createQuery(
+                "SELECT j FROM Job j WHERE j.company.id = :companyId", 
+                Job.class)
+                .setParameter("companyId", companyId)
+                .getResultList();
+        } finally {
+            session.close();
+        }
+    }
+
+    
     
 }

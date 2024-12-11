@@ -6,6 +6,9 @@ import com.jobboard.service.CompanyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class CompanyServiceImpl implements CompanyService {
@@ -44,5 +47,13 @@ public class CompanyServiceImpl implements CompanyService {
         companyDao.update(company);
     }
     
-    
+    @Override
+    public Page<Company> getAllCompaniesPageable(Pageable pageable) {
+        return companyDao.findAllPaginated(pageable);
+    }
+    @Override
+    public void deleteCompany(int id) {
+        companyDao.deleteById(id);
+    }
+
 }

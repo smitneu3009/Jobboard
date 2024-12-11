@@ -8,6 +8,11 @@ import com.jobboard.service.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.RequestParam;
+
 
 @Service
 public class JobServiceImpl implements JobService {
@@ -27,6 +32,12 @@ public class JobServiceImpl implements JobService {
     public void updateJob(Job job) {
         jobDao.update(job);
     }
+    
+    @Override
+    public Page<Job> findAllJobs(Pageable pageable) {
+        return jobDao.findAllPaginated(pageable);
+    }
+
 
     @Override
     public void deleteJob(int id) {
@@ -53,6 +64,11 @@ public class JobServiceImpl implements JobService {
         }
         return job;
     }
+    @Override
+    public List<Job> findByCompanyId(int companyId) {
+        return jobDao.findByCompanyId(companyId);
+    }
+
 
     @Override
     public List<Job> findByCompany(Company company) {

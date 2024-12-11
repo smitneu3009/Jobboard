@@ -32,6 +32,26 @@
         .table-responsive {
             margin-top: 20px;
         }
+        .pagination {
+        margin-bottom: 0;
+    }
+    
+    .page-link {
+        color: #343a40;
+        border: 1px solid #dee2e6;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .page-item.active .page-link {
+        background-color: #343a40;
+        border-color: #343a40;
+    }
+    
+    .page-item.disabled .page-link {
+        color: #6c757d;
+        pointer-events: none;
+        background-color: #fff;
+    }
     </style>
 </head>
 <body>
@@ -54,6 +74,11 @@
                                 Jobs
                             </a>
                         </li>
+                        <li class="nav-item">
+                <a class="nav-link" href="/admin/companies">
+                    <i class="fas fa-building me-2"></i>Companies
+                </a>
+            </li>
                        <li class="nav-item">
     <form th:action="@{/admin/logout}" method="post" style="display: inline;">
         <button type="submit" class="nav-link" style="background: none; border: none; width: 100%; text-align: left;">
@@ -124,6 +149,39 @@
                         </div>
                     </div>
                 </div>
+                <!-- Add this after the table-responsive div -->
+<div th:if="${totalPages > 1}" class="d-flex justify-content-between align-items-center mt-4">
+    <div>
+        <span class="text-muted">
+            Showing page <span th:text="${currentPage + 1}"></span> of <span th:text="${totalPages}"></span>
+            (<span th:text="${totalItems}"></span> total job seekers)
+        </span>
+    </div>
+    <nav aria-label="Page navigation">
+        <ul class="pagination mb-0">
+            <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{/admin/dashboard(page=${currentPage - 1})}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            
+            <li class="page-item" 
+                th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+                th:classappend="${pageNum == currentPage ? 'active' : ''}">
+                <a class="page-link" 
+                   th:href="@{/admin/dashboard(page=${pageNum})}" 
+                   th:text="${pageNum + 1}">1</a>
+            </li>
+            
+            <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{/admin/dashboard(page=${currentPage + 1})}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</div>
+                
             </main>
         </div>
     </div>

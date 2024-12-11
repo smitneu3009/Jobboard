@@ -111,9 +111,9 @@ public class CompanyController {
                 return "redirect:/company/dashboard";
             }
             
-            model.addAttribute("company", company);  // Add this line
+            model.addAttribute("company", company);
             model.addAttribute("job", job);
-            return "company/edit-job";
+            return "company/edit-job";  // Make sure this template exists
         } catch (Exception e) {
             return "redirect:/company/dashboard";
         }
@@ -166,18 +166,16 @@ public class CompanyController {
         Company company = companyService.findByEmail(email);
         
         // Get statistics
-        int activeJobs = jobService.countActiveJobsByCompany(company);
+        List<Job> companyJobs = jobService.findByCompany(company);
+        int totalJobs = companyJobs.size();
         int totalApplications = jobService.countTotalApplicationsByCompany(company);
-        int viewsThisMonth = 0; // Implement this feature later if needed
         
         model.addAttribute("company", company);
-        model.addAttribute("activeJobs", activeJobs);
+        model.addAttribute("totalJobs", totalJobs);
         model.addAttribute("totalApplications", totalApplications);
-        model.addAttribute("viewsThisMonth", viewsThisMonth);
         
         return "company/profile";
     }
-
     @GetMapping("/company/profile/edit")
     public String showEditProfileForm(Model model, Principal principal) {
         String email = principal.getName();

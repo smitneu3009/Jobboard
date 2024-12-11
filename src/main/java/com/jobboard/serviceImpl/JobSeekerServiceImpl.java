@@ -9,6 +9,12 @@ import com.jobboard.service.JobSeekerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.hibernate.SessionFactory;
+
+import org.hibernate.Session;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +22,10 @@ import java.util.List;
 @Service
 public class JobSeekerServiceImpl implements JobSeekerService {
 
-    @Autowired
+	 @Autowired
+	 
+	private SessionFactory sessionFactory;
+	@Autowired
     private JobSeekerDao jobSeekerDao;
     
     @Autowired
@@ -98,5 +107,25 @@ public class JobSeekerServiceImpl implements JobSeekerService {
         List<JobApplication> applications = jobApplicationDao.findByJobSeekerAndStatus(jobSeeker, status);
         return applications != null ? applications.size() : 0;
     }
+    @Override
+    public Page<JobSeeker> getAllJobSeekersPageable(Pageable pageable) {
+        Session session = sessionFactory.openSession();
+        try {
+            // Get total count
+            Long total = session.createQuery("SELECT COUNT(js) FROM JobSeeker js", Long.class)
+                .getSingleResult();
+
+            // Get paginated results
+            List<JobSeeker> jobSeekers = session.createQuery("FROM JobSeeker js", JobSeeker.class)
+                .setFirstResult((int) pageable.getOffset())
+                .setMaxResults(pageable.getPageSize())
+                .getResultList();
+
+            return new PageImpl<>(jobSeekers, pageable, total);
+        } finally {
+            session.close();
+        }
+    }
+
     
 }

@@ -3,6 +3,9 @@ package com.jobboard.dao;
 import com.jobboard.model.Job;
 import com.jobboard.model.Company;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 
 public interface JobDao {
     void save(Job job);
@@ -18,5 +21,9 @@ public interface JobDao {
     List<String> findAllCategories();
     List<String> findAllLocations();
     List<Job> findAll();
+    
+    Page<Job> findAllPaginated(Pageable pageable);
+    List<Job> findByCompanyId(int companyId);
+
 
 }

@@ -14,6 +14,7 @@
             --text-color: #1f2937;
             --error-color: #dc2626;
             --success-color: #16a34a;
+            --sidebar-bg:#ffffff;
         }
 
         * {
@@ -238,20 +239,17 @@
             </div>
 
             <!-- Statistics -->
-            <div class="stats-container">
-                <div class="stat-card">
-                    <div class="stat-value" th:text="${activeJobs}">0</div>
-                    <div class="stat-label">Active Job Postings</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" th:text="${totalApplications}">0</div>
-                    <div class="stat-label">Total Applications</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" th:text="${viewsThisMonth}">0</div>
-                    <div class="stat-label">Profile Views This Month</div>
-                </div>
-            </div>
+            <!-- Statistics -->
+<div class="stats-container">
+    <div class="stat-card">
+        <div class="stat-value" th:text="${totalJobs}">0</div>
+        <div class="stat-label">Total Jobs Posted</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" th:text="${totalApplications}">0</div>
+        <div class="stat-label">Total Applications</div>
+    </div>
+</div>
 
             <!-- Company Information -->
             <div class="info-section">
