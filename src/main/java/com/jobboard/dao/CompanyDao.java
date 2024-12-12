@@ -9,7 +9,7 @@ public interface CompanyDao {
     Company findByEmail(String email);
     Company getProfile(int id);
     void updateProfile(Company company);
-    void update(Company company);
+    void updateCompany(Company company);
     void save(Company company);
     Page<Company> findAllPaginated(Pageable pageable);
     void deleteById(int id);

@@ -219,6 +219,14 @@
         <!-- Search Section -->
         <div class="search-section">
             <form id="searchForm" method="get" class="row g-3">
+            <div class="search-box mb-4">
+    <input type="text" 
+           class="form-control" 
+           id="searchInput" 
+           placeholder="Search jobs..."
+           th:value="${searchTerm}">
+</div>
+            
                 <div class="col-md-4">
                     <select class="form-select" name="category">
                         <option value="">All Categories</option>
@@ -300,7 +308,7 @@
                         </span>
                         <span class="info-tag">
                             <i class="fas fa-dollar-sign"></i>
-                            <span th:text="${'$' + job.payPerHour + '/hour'}">Pay</span>
+                            <span th:text="${job.payPerHour + '/hour'}">Pay</span>
                         </span>
                     </div>
                     <p class="job-description" th:text="${job.description}">
@@ -341,5 +349,35 @@
             });
         });
     </script>
+    <script>
+let searchTimeout;
+
+function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(performSearch, 300);
+}
+
+function performSearch() {
+    const searchTerm = document.getElementById('searchInput').value;
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('searchTerm', searchTerm);
+    currentUrl.searchParams.set('page', '0');
+    fetch(currentUrl)
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            document.querySelector('.job-listings').innerHTML = doc.querySelector('.job-listings').innerHTML;
+        });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', debounceSearch);
+    }
+});
+</script>
+    
 </body>
 </html>

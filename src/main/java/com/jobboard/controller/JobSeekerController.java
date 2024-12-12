@@ -1,12 +1,13 @@
 package com.jobboard.controller;
 
+import com.jobboard.dao.JobDao;
+import com.jobboard.dao.JobSeekerDao;
 import com.jobboard.model.ApplicationStatus;
 import com.jobboard.model.Job;
 import com.jobboard.model.JobApplication;
 import com.jobboard.model.JobSeeker;
 import com.jobboard.service.EmailService;
-import com.jobboard.service.JobSeekerService;
-import com.jobboard.service.JobService;
+//import com.jobboard.service.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -24,6 +25,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,10 +46,11 @@ import java.util.UUID;
 public class JobSeekerController {
 
     @Autowired
-    private JobSeekerService jobSeekerService;
+    private JobSeekerDao jobSeekerDao;
     
     @Autowired
-    private JobService jobService; // Add this
+    private JobDao jobDao; // Add this
+    
     
     @Autowired
     private EmailService emailService;
@@ -65,7 +71,7 @@ public class JobSeekerController {
             return "jobseeker/register";
         }
 
-        jobSeekerService.registerJobSeeker(jobSeeker);
+        jobSeekerDao.registerJobSeeker(jobSeeker);
         redirectAttributes.addFlashAttribute("successMessage", "Registration successful! Please log in.");
         return "redirect:/jobseekers/login";
     }
@@ -79,30 +85,44 @@ public class JobSeekerController {
     public String showDashboard(
             Model model, 
             Principal principal,
+            @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String location,
             @RequestParam(required = false) Double minPay,
             @RequestParam(required = false) Double maxPay,
-            @RequestParam(required = false) String jobType) {
+            @RequestParam(required = false) String jobType,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size) {
         
         String email = principal.getName();
-        JobSeeker jobSeeker = jobSeekerService.findByEmail(email);
+        JobSeeker jobSeeker = jobSeekerDao.findByEmail(email);
         
-        // Get all jobs with filters
-        List<Job> jobs = jobService.findJobsWithFilters(category, location, minPay, maxPay, jobType);
+        // Create Pageable object for pagination
+        Pageable pageable = PageRequest.of(page, size);
+        
+        // Get paginated jobs with search and filters
+        Page<Job> jobPage = jobDao.findJobsWithFiltersAndPagination(
+            searchTerm, category, location, minPay, maxPay, jobType, pageable);
         
         // Get distinct categories and locations for filters
-        List<String> categories = jobService.findAllCategories();
-        List<String> locations = jobService.findAllLocations();
-        List<String> jobTypes = Arrays.asList("FULL_TIME", "PART_TIME", "INTERNSHIP", "CONTRACT");
+        List<String> categories = jobDao.findAllCategories();
+        List<String> locations = jobDao.findAllLocations();
+        List<String> jobTypes = Arrays.asList("Full Time", "Part Time", "Internship", "Contract");
 
+        // Add all necessary attributes to the model
         model.addAttribute("jobSeeker", jobSeeker);
-        model.addAttribute("jobs", jobs);
+        model.addAttribute("jobs", jobPage.getContent());
         model.addAttribute("categories", categories);
         model.addAttribute("locations", locations);
         model.addAttribute("jobTypes", jobTypes);
         
+        // Add pagination attributes
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", jobPage.getTotalPages());
+        model.addAttribute("totalItems", jobPage.getTotalElements());
+        
         // Add filter values to maintain state
+        model.addAttribute("searchTerm", searchTerm);
         model.addAttribute("selectedCategory", category);
         model.addAttribute("selectedLocation", location);
         model.addAttribute("selectedMinPay", minPay);
@@ -112,20 +132,21 @@ public class JobSeekerController {
         return "jobseeker/dashboard";
     }
 
+
     @GetMapping("/jobseekers/apply/{jobId}")
     public String showApplicationForm(@PathVariable int jobId, Model model, Principal principal, RedirectAttributes redirectAttributes) {
         try {
-            Job job = jobService.findById(jobId);
+            Job job = jobDao.findById(jobId);
             if (job == null) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Job not found");
                 return "redirect:/jobseekers/dashboard";
             }
 
             String email = principal.getName();
-            JobSeeker jobSeeker = jobSeekerService.findByEmail(email);
+            JobSeeker jobSeeker = jobSeekerDao.findByEmail(email);
             
             // Check if already applied
-            if (jobSeekerService.hasAlreadyApplied(jobSeeker.getId(), jobId)) {
+            if (jobSeekerDao.existsByJobSeekerIdAndJobId(jobSeeker.getId(), jobId)) {
                 redirectAttributes.addFlashAttribute("errorMessage", "You have already applied for this position");
                 return "redirect:/jobseekers/dashboard";
             }
@@ -164,8 +185,8 @@ public class JobSeekerController {
             }
 
             String email = principal.getName();
-            JobSeeker jobSeeker = jobSeekerService.findByEmail(email);
-            Job job = jobService.findById(jobId);
+            JobSeeker jobSeeker = jobSeekerDao.findByEmail(email);
+            Job job = jobDao.findById(jobId);
             
             // Save resume file
             String fileName = UUID.randomUUID().toString() + "_" + originalFilename;
@@ -188,7 +209,7 @@ public class JobSeekerController {
             application.setApplicationDate(LocalDateTime.now());
             application.setStatus(ApplicationStatus.PENDING);
             
-            jobSeekerService.saveApplication(application);
+            jobSeekerDao.saveApplication(application);
             
             // Send confirmation email
             sendApplicationConfirmationEmail(jobSeeker, job);
@@ -230,8 +251,8 @@ public class JobSeekerController {
     public String showApplications(Model model, Principal principal) {
         try {
             String email = principal.getName();
-            JobSeeker jobSeeker = jobSeekerService.findByEmail(email);
-            List<JobApplication> jobApplications = jobSeekerService.getApplicationsByJobSeeker(jobSeeker);
+            JobSeeker jobSeeker = jobSeekerDao.findByEmail(email);
+            List<JobApplication> jobApplications = jobSeekerDao.findApplicationsByJobSeeker(jobSeeker);
             
             // Initialize empty list if null
             if (jobApplications == null) {
@@ -251,8 +272,8 @@ public class JobSeekerController {
     public ResponseEntity<Resource> downloadResume(@PathVariable("id") int applicationId, Principal principal) {
         try {
             String email = principal.getName();
-            JobSeeker jobSeeker = jobSeekerService.findByEmail(email);
-            JobApplication jobApplication = jobSeekerService.getApplicationById(applicationId);
+            JobSeeker jobSeeker = jobSeekerDao.findByEmail(email);
+            JobApplication jobApplication = jobSeekerDao.findApplicationById(applicationId);
             
             // Security check using == for primitive int comparison
             if (jobApplication.getJobSeeker().getId() != jobSeeker.getId()) {
@@ -274,12 +295,12 @@ public class JobSeekerController {
     @GetMapping("/jobseekers/profile")
     public String showProfile(Model model, Principal principal) {
         String email = principal.getName();
-        JobSeeker jobSeeker = jobSeekerService.findByEmail(email);
+        JobSeeker jobSeeker = jobSeekerDao.findByEmail(email);
         
         // Get statistics
-        int totalApplications = jobSeekerService.countTotalApplications(jobSeeker);
-        int pendingApplications = jobSeekerService.countApplicationsByStatus(jobSeeker, ApplicationStatus.PENDING);
-        int acceptedApplications = jobSeekerService.countApplicationsByStatus(jobSeeker, ApplicationStatus.ACCEPTED);
+        int totalApplications = jobSeekerDao.countTotalApplications(jobSeeker);
+        List<JobApplication> pendingApplications = jobSeekerDao.findByJobSeekerAndStatus(jobSeeker, ApplicationStatus.PENDING);
+        List<JobApplication> acceptedApplications = jobSeekerDao.findByJobSeekerAndStatus(jobSeeker, ApplicationStatus.ACCEPTED);
         
         model.addAttribute("jobSeeker", jobSeeker);
         model.addAttribute("totalApplications", totalApplications);
@@ -292,7 +313,7 @@ public class JobSeekerController {
     @GetMapping("/jobseekers/profile/edit")
     public String showEditProfileForm(Model model, Principal principal) {
         String email = principal.getName();
-        JobSeeker jobSeeker = jobSeekerService.findByEmail(email);
+        JobSeeker jobSeeker = jobSeekerDao.findByEmail(email);
         model.addAttribute("jobSeeker", jobSeeker);
         return "jobseeker/edit-profile";
     }
@@ -304,14 +325,14 @@ public class JobSeekerController {
             RedirectAttributes redirectAttributes) {
         try {
             String email = principal.getName();
-            JobSeeker existingJobSeeker = jobSeekerService.findByEmail(email);
+            JobSeeker existingJobSeeker = jobSeekerDao.findByEmail(email);
             
             // Update only allowed fields
             existingJobSeeker.setFirstName(jobSeeker.getFirstName());
             existingJobSeeker.setLastName(jobSeeker.getLastName());
             // Don't update email as it's used for authentication
             
-            jobSeekerService.updateProfile(existingJobSeeker);
+            jobSeekerDao.updateProfile(existingJobSeeker);
             redirectAttributes.addFlashAttribute("successMessage", "Profile updated successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error updating profile: " + e.getMessage());

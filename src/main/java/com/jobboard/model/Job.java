@@ -85,7 +85,7 @@ public class Job {
 
     @Column(name = "job_type", nullable = false)
     @NotBlank(message = "Job type is required")
-    private String jobType; // FULL_TIME or PART_TIME
+    private String jobType; 
 
     @Column(name = "description", columnDefinition = "TEXT")
     @NotBlank(message = "Job description is required")
@@ -107,5 +107,4 @@ public class Job {
         this.applications = applications;
     }
 
-    // Getters and Setters
 }

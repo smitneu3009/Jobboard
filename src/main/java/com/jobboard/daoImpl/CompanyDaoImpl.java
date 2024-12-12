@@ -92,7 +92,7 @@ public class CompanyDaoImpl implements CompanyDao {
         }
     }
     @Override
-    public void update(Company company) {
+    public void updateCompany(Company company) {
         Session session = sessionFactory.openSession();
         Transaction tx = null;
         try {

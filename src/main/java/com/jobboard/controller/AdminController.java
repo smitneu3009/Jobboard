@@ -1,11 +1,11 @@
 package com.jobboard.controller;
 
+import com.jobboard.dao.CompanyDao;
+import com.jobboard.dao.JobDao;
+import com.jobboard.dao.JobSeekerDao;
 import com.jobboard.model.Company;
 import com.jobboard.model.Job;
 import com.jobboard.model.JobSeeker;
-import com.jobboard.service.CompanyService;
-import com.jobboard.service.JobSeekerService;
-import com.jobboard.service.JobService;
 
 import java.util.List;
 
@@ -26,13 +26,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class AdminController {
 	@Autowired
-    private JobSeekerService jobSeekerService;
+    private JobSeekerDao jobSeekerDao;
+	
+	 @Autowired
+	    private JobDao jobDao; // Add this
+	
+//	@Autowired
+//	private CompanyService companyService;
 	
 	@Autowired
-    private JobService jobService;
-	
-	@Autowired
-	private CompanyService companyService;
+	private CompanyDao companyDao;
 
     @GetMapping("/admin/login")
     public String showAdminLoginForm() {
@@ -46,7 +49,7 @@ public class AdminController {
             @RequestParam(defaultValue = "10") int size) {
         
         Pageable pageable = PageRequest.of(page, size);
-        Page<JobSeeker> jobSeekerPage = jobSeekerService.getAllJobSeekersPageable(pageable);
+        Page<JobSeeker> jobSeekerPage = jobSeekerDao.findAllPaginated(pageable);
         
         model.addAttribute("jobSeekers", jobSeekerPage.getContent());
         model.addAttribute("currentPage", page);
@@ -61,7 +64,7 @@ public class AdminController {
     @GetMapping("/admin/jobseeker/edit/{id}")
     public String showEditJobSeekerForm(@PathVariable("id") int id, Model model) {
         try {
-            JobSeeker jobSeeker = jobSeekerService.getProfile(id);
+            JobSeeker jobSeeker = jobSeekerDao.getProfile(id);
             if (jobSeeker == null) {
                 throw new RuntimeException("Job Seeker not found");
             }
@@ -79,7 +82,7 @@ public class AdminController {
             RedirectAttributes redirectAttributes) {
         try {
             // Get existing jobSeeker to preserve password if not changed
-            JobSeeker existingJobSeeker = jobSeekerService.getProfile(jobSeeker.getId());
+            JobSeeker existingJobSeeker = jobSeekerDao.getProfile(jobSeeker.getId());
             
             // Update fields
             existingJobSeeker.setFirstName(jobSeeker.getFirstName());
@@ -91,7 +94,7 @@ public class AdminController {
                 existingJobSeeker.setPassword(jobSeeker.getPassword());
             }
             
-            jobSeekerService.updateProfile(existingJobSeeker);
+            jobSeekerDao.updateProfile(existingJobSeeker);
             redirectAttributes.addFlashAttribute("successMessage", 
                 "Job seeker profile updated successfully!");
         } catch (Exception e) {
@@ -103,7 +106,7 @@ public class AdminController {
 
     @GetMapping("/admin/jobseeker/delete/{id}")
     public String deleteJobSeeker(@PathVariable("id") int id) {
-        jobSeekerService.deleteJobSeeker(id);
+    	jobSeekerDao.deleteById(id);
         return "redirect:/admin/dashboard";
     }
     @GetMapping("/admin/jobs")
@@ -112,7 +115,7 @@ public class AdminController {
             @RequestParam(defaultValue = "5") int size) {
         
         Pageable pageable = PageRequest.of(page, size);
-        Page<Job> jobPage = jobService.findAllJobs(pageable);
+        Page<Job> jobPage = jobDao.findAllPaginated(pageable);
         
         model.addAttribute("jobs", jobPage.getContent());
         model.addAttribute("currentPage", page);
@@ -126,7 +129,7 @@ public class AdminController {
     @GetMapping("/admin/job/edit/{id}")
     public String showEditJobForm(@PathVariable("id") int id, Model model, RedirectAttributes redirectAttributes) {
         try {
-            Job job = jobService.findById(id);
+            Job job = jobDao.findById(id);
             if (job == null) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Job not found");
                 return "redirect:/admin/jobs";
@@ -143,7 +146,7 @@ public class AdminController {
     public String updateJob(@ModelAttribute Job job, RedirectAttributes redirectAttributes) {
         try {
             // Get existing job to preserve company relationship
-            Job existingJob = jobService.findById(job.getId());
+            Job existingJob = jobDao.findById(job.getId());
             
             // Update fields
             existingJob.setTitle(job.getTitle());
@@ -152,7 +155,7 @@ public class AdminController {
             existingJob.setJobType(job.getJobType());
             existingJob.setPayPerHour(job.getPayPerHour());
             
-            jobService.updateJob(existingJob);
+            jobDao.update(existingJob);
             redirectAttributes.addFlashAttribute("successMessage", "Job updated successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error updating job: " + e.getMessage());
@@ -163,7 +166,7 @@ public class AdminController {
     @GetMapping("/admin/job/delete/{id}")
     public String deleteJob(@PathVariable("id") int id, RedirectAttributes redirectAttributes) {
         try {
-            jobService.deleteJob(id);
+        	jobDao.delete(id);
             redirectAttributes.addFlashAttribute("successMessage", "Job deleted successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error deleting job: " + e.getMessage());
@@ -178,7 +181,7 @@ public class AdminController {
             @RequestParam(defaultValue = "10") int size) {
         
         Pageable pageable = PageRequest.of(page, size);
-        Page<Company> companyPage = companyService.getAllCompaniesPageable(pageable);
+        Page<Company> companyPage = companyDao.findAllPaginated(pageable);
         
         model.addAttribute("companies", companyPage.getContent());
         model.addAttribute("currentPage", page);
@@ -191,13 +194,13 @@ public class AdminController {
     public String deleteCompany(@PathVariable("id") int id, RedirectAttributes redirectAttributes) {
         try {
             // First delete all jobs associated with this company
-            List<Job> companyJobs = jobService.findByCompanyId(id);
+            List<Job> companyJobs = jobDao.findByCompanyId(id);
             for (Job job : companyJobs) {
-                jobService.deleteJob(job.getId());
+            	jobDao.delete(job.getId());
             }
             
             // Then delete the company
-            companyService.deleteCompany(id);
+            companyDao.deleteById(id);
             redirectAttributes.addFlashAttribute("successMessage", "Company deleted successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error deleting company: " + e.getMessage());

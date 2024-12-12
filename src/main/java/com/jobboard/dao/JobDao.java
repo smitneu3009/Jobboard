@@ -25,5 +25,13 @@ public interface JobDao {
     Page<Job> findAllPaginated(Pageable pageable);
     List<Job> findByCompanyId(int companyId);
 
-
+    Page<Job> findJobsWithFiltersAndPagination(
+            String searchTerm,
+            String category,
+            String location,
+            Double minPay,
+            Double maxPay,
+            String jobType,
+            Pageable pageable
+        );
 }

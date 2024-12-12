@@ -227,6 +227,68 @@ public class JobDaoImpl implements JobDao {
         }
     }
 
+    @Override
+    public Page<Job> findJobsWithFiltersAndPagination(
+            String searchTerm,
+            String category,
+            String location,
+            Double minPay,
+            Double maxPay,
+            String jobType,
+            Pageable pageable) {
+        
+        Session session = sessionFactory.openSession();
+        try {
+            // Base query
+            String hql = "FROM Job j WHERE 1=1";
+            Map<String, Object> params = new HashMap<>();
+
+            if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+                hql += " AND (LOWER(j.title) LIKE :searchTerm OR " +
+                       "LOWER(j.description) LIKE :searchTerm OR " +
+                       "LOWER(j.location) LIKE :searchTerm OR " +
+                       "LOWER(j.jobType) LIKE :searchTerm OR " +
+                       "LOWER(j.company.companyName) LIKE :searchTerm)";
+                params.put("searchTerm", "%" + searchTerm.toLowerCase() + "%");
+            }
+            // Add other filters
+            if (location != null && !location.isEmpty()) {
+                hql += " AND j.location = :location";
+                params.put("location", location);
+            }
+
+            if (minPay != null) {
+                hql += " AND j.payPerHour >= :minPay";
+                params.put("minPay", minPay);
+            }
+
+            if (jobType != null && !jobType.isEmpty()) {
+                hql += " AND j.jobType = :jobType";
+                params.put("jobType", jobType);
+            }
+
+            // Create query for results
+            Query<Job> query = session.createQuery(hql, Job.class);
+            params.forEach(query::setParameter);
+
+            // Add pagination
+            query.setFirstResult((int) pageable.getOffset());
+            query.setMaxResults(pageable.getPageSize());
+
+            // Count total results
+            String countHql = "SELECT COUNT(j) " + hql;
+            Query<Long> countQuery = session.createQuery(countHql, Long.class);
+            params.forEach(countQuery::setParameter);
+            Long total = countQuery.getSingleResult();
+
+            List<Job> jobs = query.getResultList();
+            return new PageImpl<>(jobs, pageable, total);
+        } finally {
+            session.close();
+        }
+    }
+
+
     
     
 }

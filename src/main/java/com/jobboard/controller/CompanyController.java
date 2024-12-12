@@ -1,13 +1,13 @@
 package com.jobboard.controller;
 
+import com.jobboard.dao.CompanyDao;
+import com.jobboard.dao.JobApplicationDao;
+import com.jobboard.dao.JobDao;
 import com.jobboard.model.ApplicationStatus;
 import com.jobboard.model.Company;
 import com.jobboard.model.Job;
 import com.jobboard.model.JobApplication;
-import com.jobboard.service.CompanyService;
 import com.jobboard.service.EmailService;
-import com.jobboard.service.JobApplicationService;
-import com.jobboard.service.JobService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -30,14 +30,20 @@ import java.util.List;
 @Controller
 public class CompanyController {
 
-    @Autowired
-    private CompanyService companyService;
+//    @Autowired
+//    private CompanyService companyService;
+	
+	@Autowired
+	private CompanyDao companyDao;
 
-    @Autowired
-    private JobService jobService;
+	 @Autowired
+	    private JobDao jobDao; // Add this
+    
+//    @Autowired
+//    private JobApplicationService jobApplicationService;
     
     @Autowired
-    private JobApplicationService jobApplicationService;
+    private JobApplicationDao jobApplicationDao;
     
     @Autowired
     private EmailService emailService;
@@ -58,7 +64,7 @@ public class CompanyController {
             return "company/register";
         }
 
-        companyService.registerCompany(company);
+        companyDao.registerCompany(company);
         redirectAttributes.addFlashAttribute("successMessage", "Registration successful! Please log in.");
         return "redirect:/company/login";
     }
@@ -71,8 +77,8 @@ public class CompanyController {
     @GetMapping("/company/dashboard")
     public String showDashboard(Model model, Principal principal) {
         String email = principal.getName();
-        Company company = companyService.findByEmail(email);
-        List<Job> jobs = jobService.findByCompany(company);
+        Company company = companyDao.findByEmail(email);
+        List<Job> jobs = jobDao.findByCompany(company);
         
         model.addAttribute("company", company);
         model.addAttribute("jobs", jobs);
@@ -89,9 +95,9 @@ public class CompanyController {
     public String createJob(@ModelAttribute Job job, Principal principal, RedirectAttributes redirectAttributes) {
         try {
             String email = principal.getName();
-            Company company = companyService.findByEmail(email);
+            Company company = companyDao.findByEmail(email);
             job.setCompany(company);
-            jobService.saveJob(job);
+            jobDao.save(job);
             redirectAttributes.addFlashAttribute("successMessage", "Job posting created successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error creating job posting: " + e.getMessage());
@@ -103,8 +109,8 @@ public class CompanyController {
     public String showEditJobForm(@PathVariable("id") int id, Model model, Principal principal) {
         try {
             String email = principal.getName();
-            Company company = companyService.findByEmail(email);
-            Job job = jobService.findById(id);
+            Company company = companyDao.findByEmail(email);
+            Job job = jobDao.findById(id);
             
             // Verify that the job belongs to the company
             if (job == null || job.getCompany().getId() != company.getId()) {
@@ -123,13 +129,13 @@ public class CompanyController {
     public String updateJob(@ModelAttribute Job job, Principal principal, RedirectAttributes redirectAttributes) {
         try {
             String email = principal.getName();
-            Company company = companyService.findByEmail(email);
+            Company company = companyDao.findByEmail(email);
             
             // Verify ownership before updating using == for primitive int
-            Job existingJob = jobService.findById(job.getId());
+            Job existingJob = jobDao.findById(job.getId());
             if (existingJob != null && existingJob.getCompany().getId() == company.getId()) {
                 job.setCompany(company);
-                jobService.updateJob(job);
+                jobDao.update(job);
                 redirectAttributes.addFlashAttribute("successMessage", "Job posting updated successfully!");
             } else {
                 redirectAttributes.addFlashAttribute("errorMessage", "Unauthorized to update this job posting.");
@@ -144,12 +150,12 @@ public class CompanyController {
     public String deleteJob(@PathVariable("id") int id, Principal principal, RedirectAttributes redirectAttributes) {
         try {
             String email = principal.getName();
-            Company company = companyService.findByEmail(email);
+            Company company = companyDao.findByEmail(email);
             
             // Verify ownership before deleting using == for primitive int
-            Job job = jobService.findById(id);
+            Job job = jobDao.findById(id);
             if (job != null && job.getCompany().getId() == company.getId()) {
-                jobService.deleteJob(id);
+            	jobDao.delete(id);
                 redirectAttributes.addFlashAttribute("successMessage", "Job posting deleted successfully!");
             } else {
                 redirectAttributes.addFlashAttribute("errorMessage", "Unauthorized to delete this job posting.");
@@ -163,12 +169,12 @@ public class CompanyController {
     @GetMapping("/company/profile")
     public String showProfile(Model model, Principal principal) {
         String email = principal.getName();
-        Company company = companyService.findByEmail(email);
+        Company company = companyDao.findByEmail(email);
         
         // Get statistics
-        List<Job> companyJobs = jobService.findByCompany(company);
+        List<Job> companyJobs = jobDao.findByCompany(company);
         int totalJobs = companyJobs.size();
-        int totalApplications = jobService.countTotalApplicationsByCompany(company);
+        int totalApplications = jobDao.countTotalApplicationsByCompany(company);
         
         model.addAttribute("company", company);
         model.addAttribute("totalJobs", totalJobs);
@@ -179,7 +185,7 @@ public class CompanyController {
     @GetMapping("/company/profile/edit")
     public String showEditProfileForm(Model model, Principal principal) {
         String email = principal.getName();
-        Company company = companyService.findByEmail(email);
+        Company company = companyDao.findByEmail(email);
         model.addAttribute("company", company);
         return "company/edit-profile";
     }
@@ -191,7 +197,7 @@ public class CompanyController {
             RedirectAttributes redirectAttributes) {
         try {
             String email = principal.getName();
-            Company existingCompany = companyService.findByEmail(email);
+            Company existingCompany = companyDao.findByEmail(email);
             
             // Update only allowed fields
             existingCompany.setCompanyName(company.getCompanyName());
@@ -199,7 +205,7 @@ public class CompanyController {
             existingCompany.setLocation(company.getLocation());
             existingCompany.setDescription(company.getDescription());
             
-            companyService.updateCompany(existingCompany);
+            companyDao.updateCompany(existingCompany);
             redirectAttributes.addFlashAttribute("successMessage", "Profile updated successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error updating profile: " + e.getMessage());
@@ -210,14 +216,14 @@ public class CompanyController {
     public String viewApplicants(@PathVariable int jobId, Model model, Principal principal) {
         try {
             String email = principal.getName();
-            Company company = companyService.findByEmail(email);
-            Job job = jobService.findById(jobId);
+            Company company = companyDao.findByEmail(email);
+            Job job = jobDao.findById(jobId);
             
             if (job == null || job.getCompany().getId() != company.getId()) {
                 return "redirect:/company/dashboard";
             }
             
-            List<JobApplication> jobApplications = jobApplicationService.findByJobId(jobId);
+            List<JobApplication> jobApplications = jobApplicationDao.findByJobId(jobId);
             if (jobApplications == null) {
                 jobApplications = new ArrayList<>();
             }
@@ -240,9 +246,9 @@ public class CompanyController {
             Principal principal,
             RedirectAttributes redirectAttributes) {
         try {
-            JobApplication application = jobApplicationService.findById(id);
+            JobApplication application = jobApplicationDao.findById(id);
             String email = principal.getName();
-            Company company = companyService.findByEmail(email);
+            Company company = companyDao.findByEmail(email);
             
             if (application.getJob().getCompany().getId() != company.getId()) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Unauthorized access");
@@ -251,7 +257,7 @@ public class CompanyController {
             
             ApplicationStatus oldStatus = application.getStatus();
             application.setStatus(status);
-            jobApplicationService.save(application);
+            jobApplicationDao.save(application);
             
             // Send email notification
             emailService.sendStatusUpdateEmail(application, oldStatus, status);
@@ -267,8 +273,8 @@ public class CompanyController {
     public ResponseEntity<Resource> downloadResume(@PathVariable int id, Principal principal) {
         try {
             String email = principal.getName();
-            Company company = companyService.findByEmail(email);
-            JobApplication application = jobApplicationService.findById(id);
+            Company company = companyDao.findByEmail(email);
+            JobApplication application = jobApplicationDao.findById(id);
             
             // Security check - ensure company owns this application
             if (application.getJob().getCompany().getId() != company.getId()) {
