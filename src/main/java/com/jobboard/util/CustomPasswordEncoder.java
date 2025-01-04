@@ -18,11 +18,9 @@ public class CustomPasswordEncoder implements PasswordEncoder {
 
     @Override
     public boolean matches(CharSequence rawPassword, String encodedPassword) {
-        // Check if the encoded password starts with BCrypt identifier
         if (encodedPassword.startsWith("$2a$")) {
             return bcryptEncoder.matches(rawPassword, encodedPassword);
         } else {
-            // For plain text passwords (admin)
             return rawPassword.toString().equals(encodedPassword);
         }
     }

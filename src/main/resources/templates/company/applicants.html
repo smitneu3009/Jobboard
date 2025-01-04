@@ -21,7 +21,6 @@
             font-family: 'Segoe UI', sans-serif;
         }
 
-        /* Sidebar Styles */
         .sidebar {
             background-color: var(--sidebar-bg);
             height: 100vh;
@@ -96,7 +95,6 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
      <div class="sidebar">
         <div class="company-info text-center">
             <h4 th:text="${company.companyName}">Company Name</h4>
@@ -128,9 +126,7 @@
         </ul>
     </div>
 
-    <!-- Main Content -->
     <div class="main-content">
-        <!-- Job Details Header -->
         <div class="card mb-4">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
@@ -145,7 +141,6 @@
             </div>
         </div>
 
-        <!-- Applicants List -->
         <div class="applicants-list">
             <div th:if="${#lists.isEmpty(jobApplications)}" class="alert alert-info">
                 <i class="fas fa-info-circle me-2"></i>

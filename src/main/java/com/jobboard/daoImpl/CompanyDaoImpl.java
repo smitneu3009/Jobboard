@@ -112,11 +112,9 @@ public class CompanyDaoImpl implements CompanyDao {
         public Page<Company> findAllPaginated(Pageable pageable) {
             Session session = sessionFactory.openSession();
             try {
-                // Get total count
                 Long total = session.createQuery("SELECT COUNT(c) FROM Company c", Long.class)
                     .getSingleResult();
 
-                // Get paginated results
                 List<Company> companies = session.createQuery("FROM Company c", Company.class)
                     .setFirstResult((int) pageable.getOffset())
                     .setMaxResults(pageable.getPageSize())

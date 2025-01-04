@@ -24,7 +24,6 @@ public class JobApplicationDaoImpl implements JobApplicationDao {
         try {
             tx = session.beginTransaction();
             if (application.getId() != 0) {
-                // If ID exists, update instead of create
                 session.merge(application);
             } else {
                 session.save(application);

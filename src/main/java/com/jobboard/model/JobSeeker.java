@@ -34,9 +34,6 @@ public class JobSeeker {
     @NotBlank(message = "Password is required")
     private String password;
 
-    // Getters and Setters
-    // Equals, HashCode, ToString
-
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 

@@ -190,34 +190,37 @@
 </head>
 <body>
     <div class="container">
-        <h2>Login as a Admin</h2>
-        <form id="loginForm" th:action="@{/admin/login}" method="post" novalidate>
-            <div class="form-group">
-                <label for="username">Email</label>
-                <input type="email" id="username" name="username" required>
-                <span class="error-message">Please enter a valid email address</span>
-            </div>
+    <h2>Login as a Admin</h2>
+    <form id="loginForm" th:action="@{/admin/login}" method="post" novalidate>
+        <div class="form-group">
+            <label for="username">Email</label>
+            <input type="email" id="username" name="username" required>
+            <span class="error-message">Please enter a valid email address</span>
+        </div>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
-                <span class="error-message">Please enter your password</span>
-            </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+            <span class="error-message">Please enter your password</span>
+        </div>
 
-            <button type="submit">Login</button>
+        <div th:if="${param.error}" class="alert alert-danger">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${session.error != null ? session.error : 'Invalid email or password'}"></span>
+        </div>
 
-            <div th:if="${param.error}" class="message error-message">
-                Invalid email or password. Please check your credentials and try again.
-            </div>
+        <div th:if="${param.logout}" class="message success-message">
+            You have been logged out successfully.
+        </div>
 
-            <div th:if="${param.logout}" class="message success-message">
-                You have been logged out successfully.
-            </div>
-			<div class="register-link">
-                <a th:href="@{/}">Back to HomePage</a>
-            </div>
-        </form>
-    </div>
+        <button type="submit">Login</button>
+
+        <div class="register-link">
+            <a th:href="@{/}">Back to HomePage</a>
+        </div>
+    </form>
+</div>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

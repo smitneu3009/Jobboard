@@ -38,6 +38,11 @@ public class SecurityConfig {
                                 .loginProcessingUrl("/jobseekers/login")
                                 .defaultSuccessUrl("/jobseekers/dashboard", true)
                                 .failureUrl("/jobseekers/login?error=true")
+                                .failureHandler((request, response, exception) -> {
+                                    String errorMessage = "Invalid email or password";
+                                    request.getSession().setAttribute("error", errorMessage);
+                                    response.sendRedirect("/jobseekers/login?error=true");
+                                })
                                 .permitAll()
                 )
                 .logout(logout -> logout
@@ -77,6 +82,11 @@ public class SecurityConfig {
                                 .loginProcessingUrl("/admin/login")
                                 .defaultSuccessUrl("/admin/dashboard", true)
                                 .failureUrl("/admin/login?error=true")
+                                .failureHandler((request, response, exception) -> {
+                                    String errorMessage = "Invalid email or password";
+                                    request.getSession().setAttribute("error", errorMessage);
+                                    response.sendRedirect("/admin/login?error=true");
+                                })
                                 .permitAll()
                 )
                 .logout(logout -> logout
@@ -118,6 +128,11 @@ public class SecurityConfig {
                                 .loginProcessingUrl("/company/login")
                                 .defaultSuccessUrl("/company/dashboard", true)
                                 .failureUrl("/company/login?error=true")
+                                .failureHandler((request, response, exception) -> {
+                                    String errorMessage = "Invalid email or password";
+                                    request.getSession().setAttribute("error", errorMessage);
+                                    response.sendRedirect("/company/login?error=true");
+                                })
                                 .permitAll()
                 )
                 .logout(logout -> logout

@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 public interface JobSeekerDao {
-    // Basic CRUD operations
     void applyForJob(JobSeeker jobSeeker);
     JobSeeker getProfile(int id);
     void updateProfile(JobSeeker jobSeeker);
@@ -17,10 +16,8 @@ public interface JobSeekerDao {
     List<JobSeeker> findAll();
     void deleteById(int id);
     
-    // Pagination
     Page<JobSeeker> findAllPaginated(Pageable pageable);
     
-    // Application related operations
     void saveApplication(JobApplication application);
     List<JobApplication> findApplicationsByJobSeeker(JobSeeker jobSeeker);
     JobApplication findApplicationById(int id);

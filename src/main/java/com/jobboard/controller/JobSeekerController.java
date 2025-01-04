@@ -49,7 +49,7 @@ public class JobSeekerController {
     private JobSeekerDao jobSeekerDao;
     
     @Autowired
-    private JobDao jobDao; // Add this
+    private JobDao jobDao;
     
     
     @Autowired
@@ -97,31 +97,25 @@ public class JobSeekerController {
         String email = principal.getName();
         JobSeeker jobSeeker = jobSeekerDao.findByEmail(email);
         
-        // Create Pageable object for pagination
         Pageable pageable = PageRequest.of(page, size);
         
-        // Get paginated jobs with search and filters
         Page<Job> jobPage = jobDao.findJobsWithFiltersAndPagination(
             searchTerm, category, location, minPay, maxPay, jobType, pageable);
         
-        // Get distinct categories and locations for filters
         List<String> categories = jobDao.findAllCategories();
         List<String> locations = jobDao.findAllLocations();
         List<String> jobTypes = Arrays.asList("Full Time", "Part Time", "Internship", "Contract");
 
-        // Add all necessary attributes to the model
         model.addAttribute("jobSeeker", jobSeeker);
         model.addAttribute("jobs", jobPage.getContent());
         model.addAttribute("categories", categories);
         model.addAttribute("locations", locations);
         model.addAttribute("jobTypes", jobTypes);
         
-        // Add pagination attributes
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", jobPage.getTotalPages());
         model.addAttribute("totalItems", jobPage.getTotalElements());
         
-        // Add filter values to maintain state
         model.addAttribute("searchTerm", searchTerm);
         model.addAttribute("selectedCategory", category);
         model.addAttribute("selectedLocation", location);
@@ -145,7 +139,6 @@ public class JobSeekerController {
             String email = principal.getName();
             JobSeeker jobSeeker = jobSeekerDao.findByEmail(email);
             
-            // Check if already applied
             if (jobSeekerDao.existsByJobSeekerIdAndJobId(jobSeeker.getId(), jobId)) {
                 redirectAttributes.addFlashAttribute("errorMessage", "You have already applied for this position");
                 return "redirect:/jobseekers/dashboard";
@@ -170,13 +163,11 @@ public class JobSeekerController {
             Principal principal,
             RedirectAttributes redirectAttributes) {
         try {
-            // Validate file
             if (resume.isEmpty()) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Please select a resume file");
                 return "redirect:/jobseekers/apply/" + jobId;
             }
 
-            // Validate file type
             String originalFilename = resume.getOriginalFilename();
             String fileExtension = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
             if (!Arrays.asList("pdf", "doc", "docx").contains(fileExtension)) {
@@ -188,7 +179,6 @@ public class JobSeekerController {
             JobSeeker jobSeeker = jobSeekerDao.findByEmail(email);
             Job job = jobDao.findById(jobId);
             
-            // Save resume file
             String fileName = UUID.randomUUID().toString() + "_" + originalFilename;
             String uploadDir = "uploads/resumes/";
             Path uploadPath = Paths.get(uploadDir);
@@ -211,7 +201,6 @@ public class JobSeekerController {
             
             jobSeekerDao.saveApplication(application);
             
-            // Send confirmation email
             sendApplicationConfirmationEmail(jobSeeker, job);
             
             redirectAttributes.addFlashAttribute("successMessage", "Application submitted successfully!");
@@ -242,7 +231,6 @@ public class JobSeekerController {
             message.setText(body.toString());
             emailService.send(message);
         } catch (Exception e) {
-            // Log error but don't stop the application flow
             e.printStackTrace();
         }
     }
@@ -254,7 +242,6 @@ public class JobSeekerController {
             JobSeeker jobSeeker = jobSeekerDao.findByEmail(email);
             List<JobApplication> jobApplications = jobSeekerDao.findApplicationsByJobSeeker(jobSeeker);
             
-            // Initialize empty list if null
             if (jobApplications == null) {
                 jobApplications = new ArrayList<>();
             }
@@ -275,7 +262,6 @@ public class JobSeekerController {
             JobSeeker jobSeeker = jobSeekerDao.findByEmail(email);
             JobApplication jobApplication = jobSeekerDao.findApplicationById(applicationId);
             
-            // Security check using == for primitive int comparison
             if (jobApplication.getJobSeeker().getId() != jobSeeker.getId()) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
@@ -327,10 +313,8 @@ public class JobSeekerController {
             String email = principal.getName();
             JobSeeker existingJobSeeker = jobSeekerDao.findByEmail(email);
             
-            // Update only allowed fields
             existingJobSeeker.setFirstName(jobSeeker.getFirstName());
             existingJobSeeker.setLastName(jobSeeker.getLastName());
-            // Don't update email as it's used for authentication
             
             jobSeekerDao.updateProfile(existingJobSeeker);
             redirectAttributes.addFlashAttribute("successMessage", "Profile updated successfully!");

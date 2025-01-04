@@ -30,17 +30,11 @@ import java.util.List;
 @Controller
 public class CompanyController {
 
-//    @Autowired
-//    private CompanyService companyService;
-	
 	@Autowired
 	private CompanyDao companyDao;
 
 	 @Autowired
-	    private JobDao jobDao; // Add this
-    
-//    @Autowired
-//    private JobApplicationService jobApplicationService;
+	 private JobDao jobDao; 
     
     @Autowired
     private JobApplicationDao jobApplicationDao;
@@ -112,14 +106,13 @@ public class CompanyController {
             Company company = companyDao.findByEmail(email);
             Job job = jobDao.findById(id);
             
-            // Verify that the job belongs to the company
             if (job == null || job.getCompany().getId() != company.getId()) {
                 return "redirect:/company/dashboard";
             }
             
             model.addAttribute("company", company);
             model.addAttribute("job", job);
-            return "company/edit-job";  // Make sure this template exists
+            return "company/edit-job";  
         } catch (Exception e) {
             return "redirect:/company/dashboard";
         }
@@ -131,7 +124,6 @@ public class CompanyController {
             String email = principal.getName();
             Company company = companyDao.findByEmail(email);
             
-            // Verify ownership before updating using == for primitive int
             Job existingJob = jobDao.findById(job.getId());
             if (existingJob != null && existingJob.getCompany().getId() == company.getId()) {
                 job.setCompany(company);
@@ -152,7 +144,6 @@ public class CompanyController {
             String email = principal.getName();
             Company company = companyDao.findByEmail(email);
             
-            // Verify ownership before deleting using == for primitive int
             Job job = jobDao.findById(id);
             if (job != null && job.getCompany().getId() == company.getId()) {
             	jobDao.delete(id);
@@ -171,7 +162,6 @@ public class CompanyController {
         String email = principal.getName();
         Company company = companyDao.findByEmail(email);
         
-        // Get statistics
         List<Job> companyJobs = jobDao.findByCompany(company);
         int totalJobs = companyJobs.size();
         int totalApplications = jobDao.countTotalApplicationsByCompany(company);
@@ -191,27 +181,27 @@ public class CompanyController {
     }
 
     @PostMapping("/company/profile/update")
-    public String updateProfile(
-            @ModelAttribute Company company,
-            Principal principal,
-            RedirectAttributes redirectAttributes) {
+    public String updateProfile(@ModelAttribute Company company, RedirectAttributes redirectAttributes) {
         try {
-            String email = principal.getName();
-            Company existingCompany = companyDao.findByEmail(email);
+            Company existingCompany = companyDao.getProfile(company.getId());
             
-            // Update only allowed fields
             existingCompany.setCompanyName(company.getCompanyName());
             existingCompany.setCategory(company.getCategory());
             existingCompany.setLocation(company.getLocation());
             existingCompany.setDescription(company.getDescription());
             
-            companyDao.updateCompany(existingCompany);
+            if (company.getPassword() != null && !company.getPassword().trim().isEmpty()) {
+                existingCompany.setPassword(company.getPassword());
+            }
+            
+            companyDao.updateProfile(existingCompany);
             redirectAttributes.addFlashAttribute("successMessage", "Profile updated successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error updating profile: " + e.getMessage());
         }
         return "redirect:/company/profile";
     }
+
     @GetMapping("/company/job/applicants/{jobId}")
     public String viewApplicants(@PathVariable int jobId, Model model, Principal principal) {
         try {
@@ -259,7 +249,6 @@ public class CompanyController {
             application.setStatus(status);
             jobApplicationDao.save(application);
             
-            // Send email notification
             emailService.sendStatusUpdateEmail(application, oldStatus, status);
             
             redirectAttributes.addFlashAttribute("successMessage", "Application status updated successfully");
@@ -276,12 +265,10 @@ public class CompanyController {
             Company company = companyDao.findByEmail(email);
             JobApplication application = jobApplicationDao.findById(id);
             
-            // Security check - ensure company owns this application
             if (application.getJob().getCompany().getId() != company.getId()) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 
-            // Get the resume file
             Path resumePath = Paths.get(application.getResumePath());
             Resource resource = new UrlResource(resumePath.toUri());
             
@@ -289,7 +276,6 @@ public class CompanyController {
                 return ResponseEntity.notFound().build();
             }
 
-            // Set headers for file download
             return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + 
                        resource.getFilename() + "\"")

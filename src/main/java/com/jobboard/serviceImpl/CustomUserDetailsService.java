@@ -31,7 +31,6 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        // Try admin first
         Admin admin = adminDao.findByAdminEmail(email);
         if (admin != null) {
             return new User(
@@ -41,7 +40,6 @@ public class CustomUserDetailsService implements UserDetailsService {
             );
         }
 
-        // Try company
         Company company = companyDao.findByEmail(email);
         if (company != null) {
             return new User(
@@ -51,7 +49,6 @@ public class CustomUserDetailsService implements UserDetailsService {
             );
         }
 
-        // Try jobseeker
         JobSeeker jobSeeker = jobSeekerDao.findByEmail(email);
         if (jobSeeker != null) {
             return new User(

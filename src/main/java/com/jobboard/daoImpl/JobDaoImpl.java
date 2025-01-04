@@ -62,14 +62,21 @@ public class JobDaoImpl implements JobDao {
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
-            Job job = session.get(Job.class, id);
-            if (job != null) {
-                session.delete(job);
-            }
+            
+            String deleteApplicationsHql = "DELETE FROM JobApplication WHERE job.id = :jobId";
+            session.createQuery(deleteApplicationsHql)
+                .setParameter("jobId", id)
+                .executeUpdate();
+                
+            String deleteJobHql = "DELETE FROM Job WHERE id = :jobId";
+            session.createQuery(deleteJobHql)
+                .setParameter("jobId", id)
+                .executeUpdate();
+                
             tx.commit();
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            throw e;
+            throw new RuntimeException("Error deleting job: " + e.getMessage());
         } finally {
             session.close();
         }
@@ -79,7 +86,6 @@ public class JobDaoImpl implements JobDao {
     public Job findById(int id) {
         Session session = sessionFactory.openSession();
         try {
-            // Use join fetch to eagerly load the company
             String hql = "FROM Job j LEFT JOIN FETCH j.company WHERE j.id = :id";
             return session.createQuery(hql, Job.class)
                     .setParameter("id", id)
@@ -116,7 +122,6 @@ public class JobDaoImpl implements JobDao {
 
     @Override
     public int countTotalApplicationsByCompany(Company company) {
-        // Implement this when you add job applications functionality
         return 0;
     }
     
@@ -125,7 +130,7 @@ public class JobDaoImpl implements JobDao {
         Session session = sessionFactory.openSession();
         try {
             StringBuilder hql = new StringBuilder("FROM Job j WHERE 1=1");
-            Map<String, Object> params = new HashMap<>();  // Now HashMap is properly imported
+            Map<String, Object> params = new HashMap<>(); 
 
             if (category != null && !category.isEmpty()) {
                 hql.append(" AND j.company.category = :category");
@@ -152,7 +157,6 @@ public class JobDaoImpl implements JobDao {
                 params.put("jobType", jobType);
             }
 
-            // Use org.hibernate.query.Query instead of jakarta.persistence.Query
             Query<Job> query = session.createQuery(hql.toString(), Job.class);
             params.forEach((key, value) -> query.setParameter(key, value));
             return query.list();
@@ -198,11 +202,9 @@ public class JobDaoImpl implements JobDao {
     public Page<Job> findAllPaginated(Pageable pageable) {
         Session session = sessionFactory.openSession();
         try {
-            // Get total count
             Long total = session.createQuery("SELECT COUNT(j) FROM Job j", Long.class)
                 .getSingleResult();
 
-            // Get paginated results
             List<Job> jobs = session.createQuery("FROM Job j JOIN FETCH j.company", Job.class)
                 .setFirstResult((int) pageable.getOffset())
                 .setMaxResults(pageable.getPageSize())
@@ -239,7 +241,6 @@ public class JobDaoImpl implements JobDao {
         
         Session session = sessionFactory.openSession();
         try {
-            // Base query
             String hql = "FROM Job j WHERE 1=1";
             Map<String, Object> params = new HashMap<>();
 
@@ -251,7 +252,6 @@ public class JobDaoImpl implements JobDao {
                        "LOWER(j.company.companyName) LIKE :searchTerm)";
                 params.put("searchTerm", "%" + searchTerm.toLowerCase() + "%");
             }
-            // Add other filters
             if (location != null && !location.isEmpty()) {
                 hql += " AND j.location = :location";
                 params.put("location", location);
@@ -267,15 +267,12 @@ public class JobDaoImpl implements JobDao {
                 params.put("jobType", jobType);
             }
 
-            // Create query for results
             Query<Job> query = session.createQuery(hql, Job.class);
             params.forEach(query::setParameter);
 
-            // Add pagination
             query.setFirstResult((int) pageable.getOffset());
             query.setMaxResults(pageable.getPageSize());
 
-            // Count total results
             String countHql = "SELECT COUNT(j) " + hql;
             Query<Long> countQuery = session.createQuery(countHql, Long.class);
             params.forEach(countQuery::setParameter);

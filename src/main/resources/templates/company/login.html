@@ -202,6 +202,11 @@
             <div th:if="${param.error}" class="message error-message">
                 Invalid email or password. Please check your credentials and try again.
             </div>
+            
+            <div th:if="${param.error}" class="alert alert-danger">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <span th:text="${session.error != null ? session.error : 'Invalid email or password'}"></span>
+        </div>
             <div th:if="${param.logout}" class="message success-message">
                 You have been logged out successfully.
             </div>

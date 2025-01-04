@@ -1,6 +1,7 @@
 package com.jobboard.controller;
 
 import com.jobboard.dao.CompanyDao;
+import com.jobboard.dao.JobApplicationDao;
 import com.jobboard.dao.JobDao;
 import com.jobboard.dao.JobSeekerDao;
 import com.jobboard.model.Company;
@@ -28,14 +29,14 @@ public class AdminController {
 	@Autowired
     private JobSeekerDao jobSeekerDao;
 	
-	 @Autowired
-	    private JobDao jobDao; // Add this
-	
-//	@Autowired
-//	private CompanyService companyService;
+	@Autowired
+	private JobDao jobDao;
 	
 	@Autowired
 	private CompanyDao companyDao;
+	
+	@Autowired
+	private JobApplicationDao jobApplicationDao;
 
     @GetMapping("/admin/login")
     public String showAdminLoginForm() {
@@ -59,8 +60,6 @@ public class AdminController {
         return "admin/dashboard";
     }
 
-
-
     @GetMapping("/admin/jobseeker/edit/{id}")
     public String showEditJobSeekerForm(@PathVariable("id") int id, Model model) {
         try {
@@ -81,15 +80,12 @@ public class AdminController {
             @ModelAttribute JobSeeker jobSeeker,
             RedirectAttributes redirectAttributes) {
         try {
-            // Get existing jobSeeker to preserve password if not changed
             JobSeeker existingJobSeeker = jobSeekerDao.getProfile(jobSeeker.getId());
             
-            // Update fields
             existingJobSeeker.setFirstName(jobSeeker.getFirstName());
             existingJobSeeker.setLastName(jobSeeker.getLastName());
             existingJobSeeker.setEmail(jobSeeker.getEmail());
             
-            // Only update password if provided
             if (jobSeeker.getPassword() != null && !jobSeeker.getPassword().trim().isEmpty()) {
                 existingJobSeeker.setPassword(jobSeeker.getPassword());
             }
@@ -145,10 +141,8 @@ public class AdminController {
     @PostMapping("/admin/job/update")
     public String updateJob(@ModelAttribute Job job, RedirectAttributes redirectAttributes) {
         try {
-            // Get existing job to preserve company relationship
             Job existingJob = jobDao.findById(job.getId());
             
-            // Update fields
             existingJob.setTitle(job.getTitle());
             existingJob.setDescription(job.getDescription());
             existingJob.setLocation(job.getLocation());
@@ -193,19 +187,22 @@ public class AdminController {
     @GetMapping("/admin/company/delete/{id}")
     public String deleteCompany(@PathVariable("id") int id, RedirectAttributes redirectAttributes) {
         try {
-            // First delete all jobs associated with this company
             List<Job> companyJobs = jobDao.findByCompanyId(id);
+            
             for (Job job : companyJobs) {
-            	jobDao.delete(job.getId());
+                jobApplicationDao.deleteByJobId(job.getId());
+                
+                jobDao.delete(job.getId());
             }
             
-            // Then delete the company
             companyDao.deleteById(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Company deleted successfully!");
+            
+            redirectAttributes.addFlashAttribute("successMessage", "Company and all associated data deleted successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error deleting company: " + e.getMessage());
         }
         return "redirect:/admin/companies";
     }
+
 
 }

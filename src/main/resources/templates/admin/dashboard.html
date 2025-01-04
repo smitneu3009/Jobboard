@@ -96,6 +96,19 @@
                     <h1 class="h2">Admin Dashboard</h1>
                 </div>
 
+                <!-- Stats Cards -->
+                <div class="row">
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card bg-primary text-white mb-4 dashboard-card">
+                            <div class="card-body">
+                                <h5>Total Job Seekers</h5>
+                                <h2 th:text="${jobSeekers.size()}">0</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Add more stat cards as needed -->
+                </div>
+
                 <!-- Job Seekers Table -->
                 <div class="card dashboard-card">
                     <div class="card-header">
@@ -106,6 +119,7 @@
                             <table class="table table-striped table-hover">
                                 <thead>
                                     <tr>
+                                        <th>ID</th>
                                         <th>First Name</th>
                                         <th>Last Name</th>
                                         <th>Email</th>
@@ -114,6 +128,7 @@
                                 </thead>
                                 <tbody>
                                     <tr th:each="jobSeeker : ${jobSeekers}">
+                                        <td th:text="${jobSeeker.id}"></td>
                                         <td th:text="${jobSeeker.firstName}"></td>
                                         <td th:text="${jobSeeker.lastName}"></td>
                                         <td th:text="${jobSeeker.email}"></td>
